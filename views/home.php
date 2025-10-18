@@ -1,4 +1,22 @@
+<head>
+    <style>
+  #map {
+      height: 400px; /* veya 500px */
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+</style>
+</head>
+
+
 <?php require_once 'includes/header.php'; ?>
+<div id="map" class="mb-4" style="position: relative;">
+    <button id="locate-btn" class="btn btn-light shadow" style="position: absolute; top: 10px; left: 10px; z-index: 1000; border: 2px solid rgba(0,0,0,0.2);">
+        📍 Konumumu Bul
+    </button>
+</div>
+<div class="p-5 mb-4 bg-light rounded-3"></div>
 
 <div class="p-5 mb-4 bg-light rounded-3">
     <div class="container-fluid py-3">

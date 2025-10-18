@@ -203,7 +203,10 @@ case 'admin/reports':
     $controller = new App\Controllers\AdminController();
     $controller->showReports();
     break;
-
+case 'api/cars':
+        $controller = new App\Controllers\ApiController();
+        $controller->getAvailableCars();
+        break;
 
 
 
