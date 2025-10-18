@@ -1,0 +1,10 @@
+{
+    "name": "tunay/rentacar",
+    "description": "Araç Kiralama Projesi",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "require": {}
+}
