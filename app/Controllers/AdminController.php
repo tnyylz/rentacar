@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 use App\BaseController;
+use App\Database;   
 
 class AdminController extends BaseController {
 
@@ -9,6 +10,124 @@ class AdminController extends BaseController {
      * Bu controller'daki herhangi bir metot çalışmadan önce bu metot çalışır.
      * Güvenlik kontrolünü burada yapmak, her metoda tek tek eklemekten daha verimlidir.
      */
+
+
+
+
+    /**
+     * Verilen bir adres metnini OpenStreetMap Nominatim servisi ile koordinatlara çevirir.
+     * @param string $address
+     * @return array|null
+     */
+     
+    private function getCoordinatesForAddress(string $address): ?array {
+        $address_encoded = urlencode($address);
+        $url = "https://nominatim.openstreetmap.org/search?q={$address_encoded}&format=json&limit=1";
+        
+        // Nominatim, isteklerde bir User-Agent belirtilmesini zorunlu kılar.
+        $options = [
+            'http' => [
+                'header' => "User-Agent: RentACarProject/1.0 (tunay@example.com)\r\n" // E-postanızı değiştirebilirsiniz
+            ]
+        ];
+        $context = stream_context_create($options);
+        
+        $response = file_get_contents($url, false, $context);
+        $data = json_decode($response, true);
+
+        if (!empty($data) && isset($data[0]['lat']) && isset($data[0]['lon'])) {
+            return [
+                'lat' => $data[0]['lat'],
+                'lon' => $data[0]['lon']
+            ];
+        }
+
+        return null;
+    }
+
+
+    
+
+
+    // --- GÜNCELLENEN METOT: storeLocation() ---
+    public function storeLocation() {
+        $city = trim($_POST['city']);
+        $location_name = trim($_POST['location_name']);
+        $address = trim($_POST['address']);
+        $phone = trim($_POST['phone']);
+        $status = $_POST['status'];
+
+        // Adresten koordinatları al
+        $full_address = "$location_name, $address, $city, Turkey";
+        $coordinates = $this->getCoordinatesForAddress($full_address);
+        
+        $latitude = $coordinates['lat'] ?? null;
+        $longitude = $coordinates['lon'] ?? null;
+
+        if ($latitude === null) {
+            $_SESSION['message'] = "Lokasyonun adresi haritada bulunamadı. Lütfen adresi daha detaylı girin. Koordinatlar kaydedilemedi.";
+            // Koordinatsız devam etmek yerine hata verip durdurmak daha doğru olabilir, ama şimdilik kaydedelim.
+            // $_SESSION['message_type'] = 'danger';
+            // header("Location: /rentacar/public/admin/locations/create");
+            // exit();
+        }
+
+        $conn = Database::getInstance()->getConnection();
+        $sql = "INSERT INTO locations (city, location_name, address, phone, status, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssssdd", $city, $location_name, $address, $phone, $status, $latitude, $longitude);
+
+        if ($stmt->execute()) {
+            $_SESSION['message'] = "Lokasyon başarıyla eklendi.";
+            $_SESSION['message_type'] = 'success';
+        } else {
+            $_SESSION['message'] = "Lokasyon eklenirken bir hata oluştu: " . $stmt->error;
+            $_SESSION['message_type'] = 'danger';
+        }
+        $stmt->close();
+        header("Location: /rentacar/public/admin/locations");
+        exit();
+    }
+
+
+    // --- GÜNCELLENEN METOT: updateLocation() ---
+    public function updateLocation() {
+        $location_id = $_POST['location_id'];
+        $city = trim($_POST['city']);
+        $location_name = trim($_POST['location_name']);
+        $address = trim($_POST['address']);
+        $phone = trim($_POST['phone']);
+        $status = $_POST['status'];
+
+        $full_address = "$location_name, $address, $city, Turkey";
+        $coordinates = $this->getCoordinatesForAddress($full_address);
+        $latitude = $coordinates['lat'] ?? null;
+        $longitude = $coordinates['lon'] ?? null;
+
+        $conn = Database::getInstance()->getConnection();
+        $sql = "UPDATE locations SET city = ?, location_name = ?, address = ?, phone = ?, status = ?, latitude = ?, longitude = ? WHERE location_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssssddi", $city, $location_name, $address, $phone, $status, $latitude, $longitude, $location_id);
+        
+        if ($stmt->execute()) {
+            $_SESSION['message'] = "Lokasyon başarıyla güncellendi.";
+            $_SESSION['message_type'] = 'success';
+        } else {
+            $_SESSION['message'] = "Lokasyon güncellenirken bir hata oluştu: " . $stmt->error;
+            $_SESSION['message_type'] = 'danger';
+        }
+        $stmt->close();
+        header("Location: /rentacar/public/admin/locations");
+        exit();
+    }
+   
+
+   
+
+
+
+
+
     public function __construct() {
         // Session'da kullanıcı bilgisi var mı VE bu kullanıcının rolü 'Admin' mi?
         if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
@@ -64,42 +183,38 @@ class AdminController extends BaseController {
     
 
     public function listCars() {
-        require_once __DIR__ . '/../../config/db.php';
+    require_once __DIR__ . '/../../config/db.php';
 
-        // 1. Ayarları Belirle
-        $limit = 10; // Sayfa başına gösterilecek araç sayısı
-        $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1; // URL'den gelen sayfa numarası, yoksa 1. sayfa
-        $offset = ($page - 1) * $limit; // SQL'in ne kadar veri atlayacağını hesapla
+    $limit = 10;
+    $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1;
+    $offset = ($page - 1) * $limit;
 
-        // 2. Toplam araç sayısını al (toplam sayfa sayısını hesaplamak için)
-        $total_cars_result = $conn->query("SELECT COUNT(*) as count FROM cars");
-        $total_cars = $total_cars_result->fetch_assoc()['count'];
-        $total_pages = ceil($total_cars / $limit); // Sayfa sayısını yukarı yuvarla
+    $total_cars_result = $conn->query("SELECT COUNT(*) as count FROM cars");
+    $total_cars = $total_cars_result->fetch_assoc()['count'];
+    $total_pages = ceil($total_cars / $limit);
 
-        // 3. Sadece ilgili sayfadaki araçları çekmek için LIMIT ve OFFSET kullan
-        $sql = "SELECT c.*, cat.category_name, loc.location_name
-                FROM cars AS c
-                LEFT JOIN categories AS cat ON c.category_id = cat.category_id
-                LEFT JOIN locations AS loc ON c.current_location_id = loc.location_id
-                ORDER BY c.car_id DESC
-                LIMIT ? OFFSET ?";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ii", $limit, $offset);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $cars = $result->fetch_all(MYSQLI_ASSOC);
-        
-        $stmt->close();
-        $conn->close();
+    // --- SORGUDAN locations JOIN'İ KALDIRILDI ---
+    $sql = "SELECT c.*, cat.category_name
+            FROM cars AS c
+            LEFT JOIN categories AS cat ON c.category_id = cat.category_id
+            ORDER BY c.car_id DESC
+            LIMIT ? OFFSET ?";
 
-        // 4. Tüm sayfalama verilerini view'e gönder
-        $this->loadView('admin/cars_list', [
-            'cars' => $cars,
-            'total_pages' => $total_pages,
-            'current_page' => $page
-        ]);
-    }
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $limit, $offset);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $cars = $result->fetch_all(MYSQLI_ASSOC);
+
+    $stmt->close();
+    $conn->close();
+
+    $this->loadView('admin/cars_list', [
+        'cars' => $cars,
+        'total_pages' => $total_pages,
+        'current_page' => $page
+    ]);
+}
 
 
 public function showCreateCarForm() {
@@ -483,36 +598,7 @@ public function showCreateLocationForm() {
     // Bu metot sadece view'i yükler.
     $this->loadView('admin/location_create_form');
 }
-public function storeLocation() {
-        // Formdan gelen verileri al ve temizle
-        $city = trim($_POST['city']);
-        $location_name = trim($_POST['location_name']);
-        $address = trim($_POST['address']);
-        $phone = trim($_POST['phone']);
-        $status = $_POST['status'];
 
-        require_once __DIR__ . '/../../config/db.php';
-
-        $sql = "INSERT INTO locations (city, location_name, address, phone, status) VALUES (?, ?, ?, ?, ?)";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssss", $city, $location_name, $address, $phone, $status);
-
-        if ($stmt->execute()) {
-            $_SESSION['message'] = "Lokasyon başarıyla eklendi.";
-            $_SESSION['message_type'] = 'success';
-        } else {
-            $_SESSION['message'] = "Lokasyon eklenirken bir hata oluştu: " . $stmt->error;
-            $_SESSION['message_type'] = 'danger';
-        }
-
-        $stmt->close();
-        $conn->close();
-
-        // İşlem bittikten sonra lokasyon listesi sayfasına geri yönlendir
-        header("Location: /rentacar/public/admin/locations");
-        exit();
-    }
 public function showEditLocationForm() {
     $location_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
     if (!$location_id) {
@@ -538,35 +624,7 @@ public function showEditLocationForm() {
     $this->loadView('admin/location_edit_form', ['location' => $location]);
 }
 
-public function updateLocation() {
-        $location_id = $_POST['location_id'];
-        $city = trim($_POST['city']);
-        $location_name = trim($_POST['location_name']);
-        $address = trim($_POST['address']);
-        $phone = trim($_POST['phone']);
-        $status = $_POST['status'];
 
-        require_once __DIR__ . '/../../config/db.php';
-
-        $sql = "UPDATE locations SET city = ?, location_name = ?, address = ?, phone = ?, status = ? WHERE location_id = ?";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssi", $city, $location_name, $address, $phone, $status, $location_id);
-
-        if ($stmt->execute()) {
-            $_SESSION['message'] = "Lokasyon başarıyla güncellendi.";
-            $_SESSION['message_type'] = 'success';
-        } else {
-            $_SESSION['message'] = "Lokasyon güncellenirken bir hata oluştu: " . $stmt->error;
-            $_SESSION['message_type'] = 'danger';
-        }
-
-        $stmt->close();
-        $conn->close();
-
-        header("Location: /rentacar/public/admin/locations");
-        exit();
-    }
 
 public function deleteLocation() {
         $location_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -732,45 +790,64 @@ public function deleteLocation() {
 
 
 
-public function showReports() {
-        require_once __DIR__ . '/../../config/db.php';
+/**
+     * Admin paneli için grafiksel raporları gösterir.
+     */
+    public function showReports() {
+        // Veritabanı bağlantısını yeni yöntemle al
+        $conn = Database::getInstance()->getConnection();
 
-        // 1. Rapor: En çok kiralanan 5 araç
-        $sql_top_cars = "SELECT 
-                            CONCAT(c.brand, ' ', c.model) AS car_name, 
-                            COUNT(r.reservation_id) AS rental_count 
-                        FROM 
-                            reservations r 
-                        JOIN 
-                            cars c ON r.car_id = c.car_id 
-                        GROUP BY 
-                            r.car_id 
-                        ORDER BY 
-                            rental_count DESC 
-                        LIMIT 5";
-        $top_cars = $conn->query($sql_top_cars)->fetch_all(MYSQLI_ASSOC);
+        // 1. KPI (Key Performance Indicator) Kartları için Veriler
+        $avg_duration_query = "SELECT AVG(TIMESTAMPDIFF(HOUR, start_date, end_date)) / 24 AS avg_days FROM reservations WHERE status = 'Tamamlandı'";
+        $avg_rating_query = "SELECT AVG(rating) AS avg_rating FROM reviews";
+        $total_customers_query = "SELECT COUNT(*) AS count FROM users WHERE role = 'Customer'";
+        $total_cars_query = "SELECT COUNT(*) AS count FROM cars";
 
-        // 2. Rapor: Aylık kazançlar (sadece 'Tamamlandı' durumundaki rezervasyonlardan)
-        $sql_monthly_revenue = "SELECT 
-                                    DATE_FORMAT(start_date, '%Y-%m') AS month, 
-                                    SUM(total_price) AS total_revenue 
-                                FROM 
-                                    reservations 
-                                WHERE 
-                                    status = 'Tamamlandı' 
-                                GROUP BY 
-                                    month 
-                                ORDER BY 
-                                    month DESC";
-        $monthly_revenue = $conn->query($sql_monthly_revenue)->fetch_all(MYSQLI_ASSOC);
+        // 2. Tablolar için Veriler: En Karlı ve En Az Karlı Araçlar
+        $revenue_per_car_query = "SELECT CONCAT(c.brand, ' ', c.model) AS car_name, SUM(r.total_price) AS total_revenue 
+                                  FROM reservations r 
+                                  JOIN cars c ON r.car_id = c.car_id 
+                                  WHERE r.status = 'Tamamlandı' 
+                                  GROUP BY r.car_id 
+                                  ORDER BY total_revenue DESC 
+                                  LIMIT 5";
 
-        $conn->close();
+        $least_profitable_cars_query = "SELECT CONCAT(c.brand, ' ', c.model) AS car_name, SUM(r.total_price) AS total_revenue 
+                                        FROM reservations r 
+                                        JOIN cars c ON r.car_id = c.car_id 
+                                        WHERE r.status = 'Tamamlandı' 
+                                        GROUP BY r.car_id 
+                                        ORDER BY total_revenue ASC 
+                                        LIMIT 5";
 
-        // Rapor verilerini view'e gönder
-        $this->loadView('admin/reports', [
-            'top_cars' => $top_cars,
-            'monthly_revenue' => $monthly_revenue
-        ]);
+        // 3. Grafikler için Veriler
+        $top_cars_query = "SELECT CONCAT(c.brand, ' ', c.model) AS car_name, COUNT(r.reservation_id) AS rental_count 
+                           FROM reservations r 
+                           JOIN cars c ON r.car_id = c.car_id 
+                           GROUP BY r.car_id 
+                           ORDER BY rental_count DESC 
+                           LIMIT 5";
+
+        $monthly_revenue_query = "SELECT DATE_FORMAT(start_date, '%Y-%m') AS month, SUM(total_price) AS total_revenue 
+                                  FROM reservations 
+                                  WHERE status = 'Tamamlandı' 
+                                  GROUP BY month 
+                                  ORDER BY month ASC"; // Grafikte zaman akışının doğru olması için ASC daha mantıklı
+
+        // Tüm sorguları çalıştır ve verileri topla
+        $data = [
+            'avg_duration' => $conn->query($avg_duration_query)->fetch_assoc()['avg_days'],
+            'avg_rating' => $conn->query($avg_rating_query)->fetch_assoc()['avg_rating'],
+            'total_customers' => $conn->query($total_customers_query)->fetch_assoc()['count'],
+            'total_cars' => $conn->query($total_cars_query)->fetch_assoc()['count'],
+            'most_profitable_cars' => $conn->query($revenue_per_car_query)->fetch_all(MYSQLI_ASSOC),
+            'least_profitable_cars' => $conn->query($least_profitable_cars_query)->fetch_all(MYSQLI_ASSOC),
+            'top_cars_chart' => $conn->query($top_cars_query)->fetch_all(MYSQLI_ASSOC),
+            'monthly_revenue_chart' => $conn->query($monthly_revenue_query)->fetch_all(MYSQLI_ASSOC),
+        ];
+        
+        // Toplanan tüm verileri tek bir dizi içinde View'e gönder
+        $this->loadView('admin/reports', $data);
     }
 
 

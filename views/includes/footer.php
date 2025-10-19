@@ -132,5 +132,42 @@
             });
 
         </script>
+
+<script>
+    // Arama formunu seç
+    const filterForm = document.querySelector('form[action="/rentacar/public/home"]');
+    // Araç listesinin bulunduğu alanı seç
+    const carListContainer = document.getElementById('car-list-container');
+
+    if (filterForm && carListContainer) {
+        filterForm.addEventListener('submit', function(event) {
+            // Formun normal şekilde gönderilip sayfanın yenilenmesini engelle
+            event.preventDefault();
+
+            // Form verilerini al
+            const formData = new FormData(filterForm);
+            // URL parametrelerine çevir (örn: ?start_date=...&category_id=...)
+            const params = new URLSearchParams(formData);
+
+            // Yükleniyor... mesajı göster (isteğe bağlı)
+            carListContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Yükleniyor...</span></div></div>';
+
+            // API'ye AJAX isteği gönder
+            fetch(`/rentacar/public/api/filter-cars?${params.toString()}`)
+                .then(response => response.text())
+                .then(html => {
+                    // Gelen HTML içeriğiyle araç listesi alanını güncelle
+                    carListContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Filtreleme sırasında hata:', error);
+                    carListContainer.innerHTML = '<div class="alert alert-danger">Araçlar yüklenirken bir hata oluştu.</div>';
+                });
+        });
+    }
+</script>
+
+
+
 </body>
 </html>

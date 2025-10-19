@@ -17,7 +17,6 @@
                 <th scope="col">Marka / Model</th>
                 <th scope="col">Plaka</th>
                 <th scope="col">Kategori</th>
-                <th scope="col">Güncel Lokasyon</th>
                 <th scope="col">Günlük Ücret</th>
                 <th scope="col">Durum</th>
                 <th scope="col">İşlemler</th>
@@ -30,7 +29,6 @@
                     <td><strong><?php echo htmlspecialchars($car['brand'] . ' ' . $car['model']); ?></strong> (<?php echo $car['year']; ?>)</td>
                     <td><?php echo htmlspecialchars($car['license_plate']); ?></td>
                     <td><?php echo htmlspecialchars($car['category_name'] ?? 'Belirtilmemiş'); ?></td>
-                    <td><?php echo htmlspecialchars($car['location_name'] ?? 'Belirtilmemiş'); ?></td>
                     <td><?php echo htmlspecialchars($car['daily_rate']); ?> TL</td>
                     <td>
                         <span class="badge 

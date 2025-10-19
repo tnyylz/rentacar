@@ -1,22 +1,27 @@
 <head>
     <style>
-  #map {
-      height: 400px; /* veya 500px */
-      width: 100%;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
+    /* Haritanın yüksekliğini, genişliğini ve görünümünü ayarlar */
+    #map {
+        height: 400px;
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    /* Diğer özel stilleriniz (takvim vb.) burada kalabilir */
+    .fc { font-size: 0.85rem; }
+    /* ... */
 </style>
 </head>
 
 
 <?php require_once 'includes/header.php'; ?>
+
 <div id="map" class="mb-4" style="position: relative;">
     <button id="locate-btn" class="btn btn-light shadow" style="position: absolute; top: 10px; left: 10px; z-index: 1000; border: 2px solid rgba(0,0,0,0.2);">
         📍 Konumumu Bul
     </button>
 </div>
-<div class="p-5 mb-4 bg-light rounded-3"></div>
 
 <div class="p-5 mb-4 bg-light rounded-3">
     <div class="container-fluid py-3">
@@ -53,34 +58,42 @@
         </div>
     </form>
 </div>
-<h2><?php echo (empty(array_filter($_GET))) ? 'Tüm Müsait Araçlar' : 'Arama Sonuçları'; ?></h2>
-<div class="row row-cols-1 row-cols-md-3 g-4 mt-2">
-    <?php if (!empty($cars)): ?>
-        <?php foreach ($cars as $car): ?>
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($car['brand'] . ' ' . $car['model']); ?></h5>
-                        <p class="card-text">
-                            <strong>Yıl:</strong> <?php echo htmlspecialchars($car['year']); ?><br>
-                            <strong>Yakıt:</strong> <?php echo htmlspecialchars($car['fuel_type']); ?><br>
-                            <strong>Vites:</strong> <?php echo htmlspecialchars($car['transmission_type']); ?>
-                        </p>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between align-items-center">
-                        <span class="fw-bold fs-5"><?php echo htmlspecialchars($car['daily_rate']); ?> TL/Gün</span>
-                        <a href="/rentacar/public/car-detail?id=<?php echo $car['car_id']; ?>" class="btn btn-primary">Detayları Gör</a>
+
+<div id="car-list-container">
+    <?php 
+        // Araç listesini ve sayfalamayı göstermek için partial dosyamızı dahil ediyoruz
+        // DÜZELTME BU SATIRDA YAPILDI
+        require_once __DIR__ . '/partials/car_list.php'; 
+    ?>
+</div>
+
+
+
+<?php if (isset($testimonials) && !empty($testimonials)): ?>
+<hr class="my-5">
+<h2 class="text-center mb-4">Müşteri Yorumları</h2>
+<div id="testimonialCarousel" class="carousel slide carousel-dark" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <?php foreach ($testimonials as $index => $testimonial): ?>
+            <div class="carousel-item <?php echo ($index === 0) ? 'active' : ''; ?>">
+                <div class="d-flex justify-content-center">
+                    <div class="col-lg-8 text-center">
+                        <p class="fs-5 fst-italic">"<?php echo htmlspecialchars($testimonial['comment']); ?>"</p>
+                        <p><strong>- <?php echo htmlspecialchars($testimonial['first_name'] . ' ' . substr($testimonial['last_name'], 0, 1) . '.'); ?></strong></p>
                     </div>
                 </div>
             </div>
         <?php endforeach; ?>
-    <?php else: ?>
-        <div class="col-12">
-            <div class="alert alert-warning">Aradığınız kriterlere uygun araç bulunamadı.</div>
-        </div>
-    <?php endif; ?>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
 </div>
+<?php endif; ?>
 
-
-<?php require_once 'includes/pagination.php'; ?>
 <?php require_once 'includes/footer.php'; ?>

@@ -47,7 +47,7 @@ switch ($route) {
         break;
 
     // --- YENİ ROTA ---
-    case 'car-detail':
+    case 'car_detail':
         $controller = new App\Controllers\CarController();
         $controller->show();
         break;
@@ -207,10 +207,22 @@ case 'api/cars':
         $controller = new App\Controllers\ApiController();
         $controller->getAvailableCars();
         break;
-
-
-
-
+case 'api/reservations':
+        $controller = new App\Controllers\ApiController();
+        $controller->getReservationsForCar();
+        break;
+case 'add-review':
+        $controller = new App\Controllers\ReviewController();
+        $controller->create();
+        break;
+case 'api/filter-cars':
+    $controller = new App\Controllers\ApiController();
+    $controller->filterCars();
+    break;
+case 'api/calculate-price':
+        $controller = new App\Controllers\ApiController();
+        $controller->calculatePrice();
+        break;
 
 
 
