@@ -12,6 +12,6 @@ class BaseController {
         extract($data);
         
         // Bu dosya app/ dizininde olduğu için, views dizinine ulaşmak için yolu düzeltiyoruz.
-        require_once __DIR__ . '/../views/' . $viewName . '.php';
+        require_once __DIR__ . '/../views/'.$viewName . '.php';
     }
 }

@@ -1,15 +1,14 @@
 <?php
 
 namespace App\Controllers;
-use DateTime;
 use App\BaseController;
+use DateTime;
 
 class UserController extends BaseController {
 
     /**
      * Giriş yapmış kullanıcının rezervasyonlarını listeler.
      */
-    
     public function showMyReservations() {
         if (!isset($_SESSION['user_id'])) {
             header("Location: /rentacar/public/home");
@@ -18,7 +17,7 @@ class UserController extends BaseController {
 
         $user_id = $_SESSION['user_id'];
         
-        require_once __DIR__ . '/../../config/db.php';
+        $conn = \App\Database::getInstance()->getConnection();
         
         // Önceki sorgunun aynısıyla TÜM rezervasyonları çekiyoruz.
         $sql = "SELECT r.reservation_id, r.start_date, r.end_date, r.total_price, r.status, c.brand, c.model
@@ -34,7 +33,6 @@ class UserController extends BaseController {
         $all_reservations = $result->fetch_all(MYSQLI_ASSOC);
         
         $stmt->close();
-        $conn->close();
 
         // --- YENİ MANTIK: Rezervasyonları ikiye ayırma ---
         $active_reservations = [];
@@ -44,17 +42,14 @@ class UserController extends BaseController {
         foreach ($all_reservations as $reservation) {
             $end_date = new DateTime($reservation['end_date']);
             
-            // Eğer rezervasyonun bitiş tarihi geçmişse veya durumu Tamamlandı/İptal ise, 'Geçmiş' listesine ekle
             if ($end_date < $now || in_array($reservation['status'], ['Tamamlandı', 'İptal Edildi'])) {
                 $past_reservations[] = $reservation;
             } else {
-                // Değilse, 'Aktif ve Gelecek' listesine ekle
                 $active_reservations[] = $reservation;
             }
         }
         // --- YENİ MANTIK SONU ---
 
-        // View'e iki ayrı dizi gönder
         $this->loadView('my_reservations', [
             'active_reservations' => $active_reservations,
             'past_reservations' => $past_reservations
@@ -62,80 +57,124 @@ class UserController extends BaseController {
     }
 
 
+    /**
+     * Müşterinin profil sayfasını gösterir.
+     */
     public function showProfile() {
         if (!isset($_SESSION['user_id'])) {
             header("Location: /rentacar/public/home");
             exit();
         }
-        // Sadece view'i yüklüyoruz, bilgiler session'dan okunacak.
-        $this->loadView('profile');
+        
+        $conn = \App\Database::getInstance()->getConnection();
+        
+        // KULLANICININ TÜM BİLGİLERİNİ ÇEK (RESİM YOLU DAHİL)
+        $stmt = $conn->prepare("SELECT first_name, last_name, email, profile_image_url FROM users WHERE user_id = ?");
+        $stmt->bind_param("i", $_SESSION['user_id']);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        $this->loadView('profile', ['user' => $user]);
     }
 
     /**
-     * Kullanıcının şifresini günceller.
+     * Müşterinin profil bilgilerini ve şifresini günceller.
      */
-    public function updatePassword() {
+    public function updateProfile() {
         if (!isset($_SESSION['user_id'])) {
             header("Location: /rentacar/public/home");
             exit();
         }
 
         $user_id = $_SESSION['user_id'];
+        $conn = \App\Database::getInstance()->getConnection();
+
+        // Önce mevcut kullanıcı verilerini çek
+        $stmt_user = $conn->prepare("SELECT password, profile_image_url FROM users WHERE user_id = ?");
+        $stmt_user->bind_param("i", $user_id);
+        $stmt_user->execute();
+        $user = $stmt_user->get_result()->fetch_assoc();
+        $stmt_user->close();
+
+        $profile_image_path = $user['profile_image_url'];
+
+        // 1. Resim Yükleme Mantığı
+        if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == 0) {
+            
+            $target_dir = $_SERVER['DOCUMENT_ROOT'] . "/rentacar/public/images/avatars/";
+            
+            $file_extension = strtolower(pathinfo($_FILES["profile_image"]["name"], PATHINFO_EXTENSION));
+            $file_name = "user_" . $user_id . "_" . uniqid() . "." . $file_extension;
+            $target_file_path = $target_dir . $file_name;
+            $web_path = "/rentacar/public/images/avatars/" . $file_name; 
+
+            $allowed_types = ['jpg', 'jpeg', 'png'];
+            if ($_FILES["profile_image"]["size"] > 2097152) {
+                $_SESSION['message'] = "Hata: Dosya boyutu çok büyük (En fazla 2MB).";
+                $_SESSION['message_type'] = 'danger';
+            } else if (!in_array($file_extension, $allowed_types)) {
+                $_SESSION['message'] = "Hata: Sadece JPG, JPEG ve PNG dosyalarına izin verilir.";
+                $_SESSION['message_type'] = 'danger';
+            } else if (move_uploaded_file($_FILES["profile_image"]["tmp_name"], $target_file_path)) {
+                $profile_image_path = $web_path;
+            } else {
+                $_SESSION['message'] = "Hata: Resim sunucuya yüklenirken bir sorun oluştu.";
+                $_SESSION['message_type'] = 'danger';
+            }
+            
+            if (isset($_SESSION['message_type']) && $_SESSION['message_type'] === 'danger') {
+                header("Location: /rentacar/public/profile");
+                exit();
+            }
+        }
+
+        // 2. Temel Bilgileri Güncelle
+        $first_name = trim($_POST['first_name']);
+        $last_name = trim($_POST['last_name']);
+        $email = trim($_POST['email']);
+        
+        $stmt_update = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, profile_image_url = ? WHERE user_id = ?");
+        $stmt_update->bind_param("ssssi", $first_name, $last_name, $email, $profile_image_path, $user_id);
+        
+        if ($stmt_update->execute()) {
+            $_SESSION['message'] = "Profil bilgilerin başarıyla güncellendi.";
+            $_SESSION['message_type'] = 'success';
+            $_SESSION['first_name'] = $first_name;
+            $_SESSION['last_name'] = $last_name;
+            $_SESSION['profile_image_url'] = $profile_image_path;
+        } else {
+            $_SESSION['message'] = "Profil güncellenirken bir hata oluştu: " . $stmt_update->error;
+            $_SESSION['message_type'] = 'danger';
+        }
+        $stmt_update->close();
+        
+        // 3. Şifre Güncelleme Mantığı
         $current_password = $_POST['current_password'];
         $new_password = $_POST['new_password'];
         $confirm_new_password = $_POST['confirm_new_password'];
 
-        // 1. Doğrulama
-        if (empty($current_password) || empty($new_password) || empty($confirm_new_password)) {
-            $_SESSION['message'] = "Lütfen tüm şifre alanlarını doldurun.";
-            $_SESSION['message_type'] = 'danger';
-            header("Location: /rentacar/public/profile");
-            exit();
+        if (!empty($current_password) && !empty($new_password) && !empty($confirm_new_password)) {
+            if ($new_password !== $confirm_new_password) {
+                $_SESSION['message'] = "Yeni şifreleriniz birbiriyle uyuşmuyor.";
+                $_SESSION['message_type'] = 'danger';
+            } else if (!password_verify($current_password, $user['password'])) {
+                $_SESSION['message'] = "Girdiğiniz mevcut şifre yanlış.";
+                $_SESSION['message_type'] = 'danger';
+            } else {
+                $new_hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
+                $stmt_pass = $conn->prepare("UPDATE users SET password = ? WHERE user_id = ?");
+                $stmt_pass->bind_param("si", $new_hashed_password, $user_id);
+                $stmt_pass->execute();
+                $stmt_pass->close();
+                
+                $_SESSION['message'] = "Profiliniz ve şifreniz başarıyla güncellendi.";
+                $_SESSION['message_type'] = 'success';
+            }
         }
 
-        if ($new_password !== $confirm_new_password) {
-            $_SESSION['message'] = "Yeni şifreler uyuşmuyor.";
-            $_SESSION['message_type'] = 'danger';
-            header("Location: /rentacar/public/profile");
-            exit();
-        }
-
-        require_once __DIR__ . '/../../config/db.php';
-
-        // 2. Mevcut şifreyi kontrol et
-        $stmt = $conn->prepare("SELECT password FROM users WHERE user_id = ?");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        $stmt->close();
-
-        if (!$user || !password_verify($current_password, $user['password'])) {
-            $_SESSION['message'] = "Mevcut şifreniz yanlış.";
-            $_SESSION['message_type'] = 'danger';
-            header("Location: /rentacar/public/profile");
-            exit();
-        }
-
-        // 3. Yeni şifreyi güncelle
-        $new_hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
-        $stmt = $conn->prepare("UPDATE users SET password = ? WHERE user_id = ?");
-        $stmt->bind_param("si", $new_hashed_password, $user_id);
-        
-        if ($stmt->execute()) {
-            $_SESSION['message'] = "Şifreniz başarıyla güncellendi.";
-            $_SESSION['message_type'] = 'success';
-        } else {
-            $_SESSION['message'] = "Şifre güncellenirken bir hata oluştu.";
-            $_SESSION['message_type'] = 'danger';
-        }
-
-        $stmt->close();
-        $conn->close();
         header("Location: /rentacar/public/profile");
         exit();
     }
-    
-    
-
 }
+

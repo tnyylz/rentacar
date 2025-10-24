@@ -102,6 +102,10 @@ case 'admin/cars/delete':
         $controller = new App\Controllers\AdminController();
         $controller->deleteCar();
         break;
+case 'admin/users/delete':
+        $controller = new App\Controllers\AdminController();
+        $controller->deleteUser();
+        break;
 
 case 'admin/reservations':
     $controller = new App\Controllers\AdminController();
@@ -195,14 +199,24 @@ case 'profile':
     $controller->showProfile();
     break;
 
-case 'update-password':
+
+case 'profile/update':
     $controller = new App\Controllers\UserController();
-    $controller->updatePassword();
+    $controller->updateProfile();
     break;
 case 'admin/reports':
     $controller = new App\Controllers\AdminController();
     $controller->showReports();
+    break; 
+case 'admin/profile':
+    $controller = new App\Controllers\AdminController();
+    $controller->showAdminProfile();
     break;
+
+case 'admin/profile/update':
+    $controller = new App\Controllers\AdminController();
+    $controller->updateAdminProfile();
+    break;    
 case 'api/cars':
         $controller = new App\Controllers\ApiController();
         $controller->getAvailableCars();

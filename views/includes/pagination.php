@@ -10,7 +10,7 @@ $base_url = '?' . $query_string;
 if ($total_pages > 1): ?>
 <nav aria-label="Sayfa navigasyonu" class="mt-5">
     <ul class="pagination justify-content-center">
-        <li class="page-item <?php echo ($current_page <= 1) ? 'disabled' : ''; ?>">
+        <li class="page-item  <?php echo ($current_page <= 1) ? 'disabled' : ''; ?>">
             <a class="page-link" href="<?php echo $base_url; ?>&page=<?php echo $current_page - 1; ?>">Önceki</a>
         </li>
 

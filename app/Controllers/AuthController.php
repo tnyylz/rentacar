@@ -8,7 +8,7 @@ class AuthController extends BaseController {
         $this->loadView('register');
     }
 
-    public function register() {
+      public function register() {
         $errors = [];
         $old_input = [
             'first_name' => $_POST['first_name'] ?? '',
@@ -33,7 +33,7 @@ class AuthController extends BaseController {
             $this->redirectBackToRegisterForm($errors, $old_input);
         }
 
-        require __DIR__ . '/../../config/db.php';
+        $conn = \App\Database::getInstance()->getConnection();
 
         $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
@@ -45,7 +45,6 @@ class AuthController extends BaseController {
         $stmt->close();
 
         if (!empty($errors)) {
-            $conn->close();
             $this->redirectBackToRegisterForm($errors, $old_input);
         }
         
@@ -63,7 +62,6 @@ class AuthController extends BaseController {
             $this->redirectBackToRegisterForm($errors, $old_input);
         }
         $stmt->close();
-        $conn->close();
         exit();
     }
 
@@ -80,26 +78,31 @@ class AuthController extends BaseController {
 
         require_once __DIR__ . '/../../config/db.php';
         
-        $stmt = $conn->prepare("SELECT user_id, first_name, password, role FROM users WHERE email = ?");
+        // --- SORGULAMAYA last_name ve profile_image_url EKLENDİ ---
+        $stmt = $conn->prepare("SELECT user_id, first_name, last_name, password, role, profile_image_url FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
         
         if ($stmt->num_rows > 0) {
-            $stmt->bind_result($user_id, $first_name, $hashed_password_from_db, $role);
+            // --- DEĞİŞKENLERE last_name ve profile_image_url EKLENDİ ---
+            $stmt->bind_result($user_id, $first_name, $last_name, $hashed_password_from_db, $role, $profile_image_url);
             $stmt->fetch();
 
             if (password_verify($password, $hashed_password_from_db)) {
+                // --- SESSION'A last_name ve profile_image_url EKLENDİ ---
                 $_SESSION['user_id'] = $user_id;
                 $_SESSION['first_name'] = $first_name;
+                $_SESSION['last_name'] = $last_name; 
+                $_SESSION['profile_image_url'] = $profile_image_url;
                 $_SESSION['role'] = $role;
+                
                 if ($role === 'Admin') {
-                        header("Location: /rentacar/public/admin/dashboard");
-                    } 
-                else {
-                        header("Location: /rentacar/public/home");
-                    }
-    
+                    header("Location: /rentacar/public/admin/dashboard");
+                } else {
+                    header("Location: /rentacar/public/home");
+                }
+                
                 $stmt->close();
                 $conn->close();
                 exit();

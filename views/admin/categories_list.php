@@ -1,44 +1,88 @@
 <?php require_once 'includes/header.php'; ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Kategori Yönetimi</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="/rentacar/public/admin/categories/create" class="btn btn-sm btn-outline-primary">
-            + Yeni Kategori Ekle
-        </a>
+<!-- Sayfa İçeriği -->
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <!-- Kart Başlığı ve Yeni Ekle Butonu -->
+            <div class="card-header border-0 d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Kategori Yönetimi</h3>
+                <a href="/rentacar/public/admin/categories/create" class="btn btn-sm btn-primary">Yeni Kategori Ekle</a>
+            </div>
+            <!-- Argon Temalı Tablo -->
+            <div class="table-responsive">
+                <table class="table align-items-center table-flush">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">#ID</th>
+                            <th scope="col">Kategori Adı</th>
+                            <th scope="col">Açıklama</th>
+                            <th scope="col">Durum</th>
+                            <th scope="col" class="text-right">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody class="list">
+                        <?php if (isset($categories) && !empty($categories)): ?>
+                            <?php foreach ($categories as $category): ?>
+                                <tr>
+                                    <td class="text-sm font-weight-bold">
+                                        <?php echo $category['category_id']; ?>
+                                    </td>
+                                    <th scope="row">
+                                        <div class="media align-items-center">
+                                            <div class="media-body">
+                                                <span class="name mb-0 text-sm font-weight-bold"><?php echo htmlspecialchars($category['category_name']); ?></span>
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <td>
+                                        <span class="d-block text-sm"><?php echo htmlspecialchars(mb_strimwidth($category['description'], 0, 70, "...")); ?></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-dot mr-4">
+                                            <?php
+                                                $status_class = ($category['status'] == 'Active') ? 'bg-success' : 'bg-secondary';
+                                            ?>
+                                            <i class="<?php echo $status_class; ?>"></i>
+                                            <span class="status"><?php echo htmlspecialchars($category['status']); ?></span>
+                                        </span>
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="dropdown">
+                                            <a class="btn btn-sm btn-icon-only text-dark" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
+                                                <a class="dropdown-item" href="/rentacar/public/admin/categories/edit?id=<?php echo $category['category_id']; ?>">
+                                                    <i class="ni ni-settings text-info"></i> Düzenle
+                                                </a>
+                                                <a class="dropdown-item text-danger" href="/rentacar/public/admin/categories/delete?id=<?php echo $category['category_id']; ?>" 
+                                                   onclick="return confirm('Bu kategoriyi kalıcı olarak silmek istediğinizden emin misiniz?');">
+                                                   <i class="ni ni-fat-remove"></i> Sil
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted p-5">Sistemde kayıtlı kategori bulunmuyor.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Kart Alt Bilgisi - Sayfalama -->
+            <div class="card-footer py-4">
+                <?php 
+                if (isset($total_pages) && isset($current_page)) {
+                    require_once 'includes/pagination.php'; 
+                }
+                ?>
+            </div>
+        </div>
     </div>
-</div>
-
-<div class="table-responsive">
-    <table class="table table-striped table-sm">
-        <thead>
-            <tr>
-                <th scope="col">#ID</th>
-                <th scope="col">Kategori Adı</th>
-                <th scope="col">Açıklama</th>
-                <th scope="col">Durum</th>
-                <th scope="col">İşlemler</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($categories as $category): ?>
-                <tr>
-                    <td><?php echo $category['category_id']; ?></td>
-                    <td><strong><?php echo htmlspecialchars($category['category_name']); ?></strong></td>
-                    <td><?php echo htmlspecialchars($category['description']); ?></td>
-                    <td>
-                        <span class="badge <?php echo ($category['status'] == 'Active') ? 'bg-success' : 'bg-secondary'; ?>">
-                            <?php echo htmlspecialchars($category['status']); ?>
-                        </span>
-                    </td>
-                    <td>
-                        <a href="/rentacar/public/admin/categories/edit?id=<?php echo $category['category_id']; ?>" class="btn btn-sm btn-outline-secondary">Düzenle</a>
-                        <a href="/rentacar/public/admin/categories/delete?id=<?php echo $category['category_id']; ?>" onclick="return confirm('Bu kategoriyi kalıcı olarak silmek istediğinizden emin misiniz?');" class="btn btn-sm btn-outline-danger">Sil</a>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
 </div>
 
 <?php require_once 'includes/footer.php'; ?>
