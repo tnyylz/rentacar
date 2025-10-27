@@ -622,7 +622,7 @@ class AdminController extends BaseController {
     
     // --- RAPORLAR ---
     public function showReports() {
-        $conn = \App\Database::getInstance()->getConnection();
+        $conn = Database::getInstance()->getConnection();
 
         $avg_duration = $conn->query("SELECT AVG(TIMESTAMPDIFF(HOUR, start_date, end_date)) / 24 AS avg_days FROM reservations WHERE status = 'Tamamlandı'")->fetch_assoc()['avg_days'];
         $avg_rating = $conn->query("SELECT AVG(rating) AS avg_rating FROM reviews")->fetch_assoc()['avg_rating'];
@@ -680,7 +680,7 @@ class AdminController extends BaseController {
     // --- ADMİN PROFİLİ ---
     public function showAdminProfile() {
         $admin_user_id = $_SESSION['user_id'];
-        $conn = \App\Database::getInstance()->getConnection();
+        $conn = Database::getInstance()->getConnection();
         $stmt = $conn->prepare("SELECT first_name, last_name, email, profile_image_url FROM users WHERE user_id = ?");
         $stmt->bind_param("i", $admin_user_id);
         $stmt->execute();
@@ -698,7 +698,7 @@ class AdminController extends BaseController {
     
     public function updateAdminProfile() {
         $admin_user_id = $_SESSION['user_id'];
-        $conn = \App\Database::getInstance()->getConnection();
+        $conn = Database::getInstance()->getConnection();
         $stmt_user = $conn->prepare("SELECT password, profile_image_url FROM users WHERE user_id = ?");
         $stmt_user->bind_param("i", $admin_user_id);
         $stmt_user->execute();

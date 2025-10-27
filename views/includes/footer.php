@@ -31,6 +31,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
    crossorigin=""></script>
+   <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
     <script>
         // Login modal'ını tetiklemek için script
         const loginModalBtn = document.getElementById('loginModalBtn');
@@ -132,6 +133,44 @@
             });
 
         </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const pickupDateInput = document.getElementById('pickup_date');
+        const returnDateInput = document.getElementById('return_date');
+
+        if (pickupDateInput && returnDateInput) {
+            const picker = new Litepicker({
+                element: pickupDateInput,
+                elementEnd: returnDateInput,
+                singleMode: false, // İki tarih seçtirme (aralık)
+                allowRepick: true, // Yeniden seçime izin ver
+                format: 'DD.MM.YYYY', // Görüntü formatı
+                minDate: new Date(), // Geçmiş tarihleri engelle
+                numberOfMonths: 2, // Aynı anda 2 ay göster
+                dropdowns: {
+                    minYear: new Date().getFullYear(),
+                    maxYear: new Date().getFullYear() + 1,
+                    months: true,
+                    years: true,
+                },
+                tooltipText: {
+                  "one": "gün",
+                  "other": "gün"
+                },
+                lang: 'tr-TR', // Türkçe dil
+                setup: (picker) => {
+                    picker.on('selected', (date1, date2) => {
+                        // Seçim yapıldığında input'ları doldur
+                        pickupDateInput.value = date1.format('DD.MM.YYYY');
+                        returnDateInput.value = date2.format('DD.MM.YYYY');
+                    });
+                }
+            });
+        }
+    });
+    </script>
+
 
 <script>
     // Arama formunu seç

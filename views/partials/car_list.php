@@ -1,4 +1,9 @@
-<h2><?php echo (empty(array_filter($_GET))) ? 'Tüm Müsait Araçlar' : 'Arama Sonuçları'; ?></h2>
+<!-- 
+    Bu dosya artık $cars, $total_pages, $current_page 
+    ve $isSearchSubmitted değişkenlerini alıyor.
+-->
+
+<h2><?php echo (isset($isSearchSubmitted) && $isSearchSubmitted) ? 'Arama Sonuçları' : 'Tüm Müsait Araçlar'; ?></h2>
 
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-2">
     <?php if (!empty($cars)): ?>
@@ -34,6 +39,7 @@
     <?php endif; ?>
 </div>
 
+<!-- Sayfalama linklerini dahil et -->
 <?php 
 if (isset($total_pages) && isset($current_page)) {
     require_once __DIR__ . '/../includes/pagination.php'; 
