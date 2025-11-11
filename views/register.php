@@ -34,4 +34,6 @@ unset($_SESSION['old_input']);
     </div>
 </div>
 
-<?php require_once 'includes/footer.php'; ?>
+<footer class="pt-4 my-md-5 pt-md-5 border-top text-center">
+            <p>&copy; <?php echo date('Y'); ?> Araç Kiralama Projesi</p>
+</footer>

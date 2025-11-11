@@ -1,5 +1,4 @@
 <?php require_once 'includes/header.php'; ?>
-
 <?php if (isset($car)): ?>
     
     <div class="row g-5">
@@ -162,4 +161,6 @@
         });
     </script>
 <?php endif; ?>
+
+
 <?php require_once 'includes/footer.php'; ?>

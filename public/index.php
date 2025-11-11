@@ -63,7 +63,6 @@ case 'my_reservations':
     $controller->showMyReservations();
     break;
 
-case 'admin':
 
 case 'admin/dashboard':
         $controller = new App\Controllers\AdminController();

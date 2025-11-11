@@ -8,10 +8,7 @@ use App\Database;
 
 class AdminController extends BaseController {
 
-    /**
-     * Güvenlik kontrolü, tüm admin sayfaları için çalışır.
-     * Bu metot, bir AdminController nesnesi oluşturulduğu anda otomatik olarak çalışır.
-     */
+  
     public function __construct() {
         if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
             $_SESSION['message'] = "Bu alana erişim yetkiniz yok.";

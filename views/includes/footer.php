@@ -1,6 +1,69 @@
-<footer class="pt-4 my-md-5 pt-md-5 border-top text-center">
-            <p>&copy; <?php echo date('Y'); ?> Araç Kiralama Projesi</p>
-        </footer>
+</div>
+
+<hr class="my-5">
+
+<footer class=" pt-5 pb-4 my-5 ">
+    <div class="container">
+        <div class="row">
+            <!-- Sütun 1: Marka Bilgisi -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="fw-bold text-primary">İnelsan Rent A Car</h5>
+                <p class="text-muted small">
+                    Türkiye'nin dört bir yanında, her yolculuğun başlangıcında yanınızdayız. 
+                    Geniş araç filomuz ve uygun fiyatlarımızla konforlu bir sürüş deneyimi sunuyoruz.
+                </p>
+                <!-- Sosyal Medya İkonları (Opsiyonel) -->
+                <div>
+                    <a href="#" class="btn btn-outline-primary btn-sm me-2">f</a>
+                    <a href="#" class="btn btn-outline-primary btn-sm me-2">t</a>
+                    <a href="#" class="btn btn-outline-primary btn-sm">in</a>
+                </div>
+            </div>
+
+            <!-- Sütun 2: Hızlı Menü -->
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="fw-bold mb-3">Hızlı Menü</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/rentacar/public/home" class="text-muted text-decoration-none">Ana Sayfa</a></li>
+                    <li class="mb-2"><a href="/rentacar/public/register" class="text-muted text-decoration-none">Kayıt Ol</a></li>
+                    <li class="mb-2"><a href="#" id="loginModalBtnFooter" class="text-muted text-decoration-none">Giriş Yap</a></li>
+                    <li class="mb-2"><a href="/rentacar/public/my_reservations" class="text-muted text-decoration-none">Rezervasyonlarım</a></li>
+                </ul>
+            </div>
+
+            <!-- Sütun 3: Araç Tipleri (Statik) -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h6 class="fw-bold mb-3">Araç Tipleri</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/rentacar/public/home?category_id=1" class="text-muted text-decoration-none">Hatchback</a></li>
+                    <li class="mb-2"><a href="/rentacar/public/home?category_id=2" class="text-muted text-decoration-none">Sedan</a></li>
+                    <li class="mb-2"><a href="/rentacar/public/home?category_id=3" class="text-muted text-decoration-none">SUV</a></li>
+                    <li class="mb-2"><a href="/rentacar/public/home?category_id=4" class="text-muted text-decoration-none">Crossover</a></li>
+                    <li class="mb-2"><a href="/rentacar/public/home?category_id=5" class="text-muted text-decoration-none">Pick-up</a></li>
+                    <li class="mb-2"><a href="/rentacar/public/home?category_id=6" class="text-muted text-decoration-none">MPV / Minivan</a></li>
+                </ul>
+            </div>
+            
+            <!-- Sütun 4: İletişim -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h6 class="fw-bold mb-3">İletişim</h6>
+                <p class="text-muted small">
+                    Adnan Menderes Havalimanı, Gaziemir, İzmir
+                    <br>
+                    <strong>Telefon:</strong> +90 555 123 45 67
+                    <br>
+                    <strong>E-posta:</strong> info@inelsanrentacar.com
+                </p>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col text-center text-muted small">
+                <p>&copy; <?php echo date('Y'); ?> İnelsan Rent A Car. Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </div>
+</footer>
     </div>
 
     <div class="modal fade" id="loginModal" tabindex="-1">
@@ -143,25 +206,23 @@
             const picker = new Litepicker({
                 element: pickupDateInput,
                 elementEnd: returnDateInput,
-                singleMode: false, // İki tarih seçtirme (aralık)
-                allowRepick: true, // Yeniden seçime izin ver
-                format: 'DD.MM.YYYY', // Görüntü formatı
-                minDate: new Date(), // Geçmiş tarihleri engelle
-                numberOfMonths: 2, // Aynı anda 2 ay göster
+                singleMode: false,
+                allowRepick: true,
+                format: 'DD.MM.YYYY',
+                minDate: new Date(),
+                numberOfMonths: 2,
                 dropdowns: {
                     minYear: new Date().getFullYear(),
                     maxYear: new Date().getFullYear() + 1,
                     months: true,
                     years: true,
                 },
-                tooltipText: {
-                  "one": "gün",
-                  "other": "gün"
-                },
-                lang: 'tr-TR', // Türkçe dil
+                tooltipText: {"one": "gün", "other": "gün"},
+                lang: 'tr-TR',
                 setup: (picker) => {
                     picker.on('selected', (date1, date2) => {
                         // Seçim yapıldığında input'ları doldur
+                        // (Litepicker bazen bunu otomatik yapar, bazen manuel gerekir)
                         pickupDateInput.value = date1.format('DD.MM.YYYY');
                         returnDateInput.value = date2.format('DD.MM.YYYY');
                     });
@@ -169,7 +230,7 @@
             });
         }
     });
-    </script>
+</script>
 
 
 <script>

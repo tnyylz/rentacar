@@ -17,7 +17,7 @@
 
     <!-- Sayfaya Özel Stilleriniz -->
     <style>
-        #map { height: 400px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+      #map { height: 400px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         .calendar-aspect-ratio-wrapper { position: relative; width: 100%; height: 0; padding-bottom: 100%; }
         .calendar-aspect-ratio-wrapper #calendar { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .navbar .dropdown-avatar-toggle::after { display: none; } 
@@ -25,36 +25,113 @@
         .featured-car-img { height: 180px; object-fit: contain; width: 100%; background-color: #f8f9fa; }
         .featured-car-card { border: none; background: none; padding: 10px; transition: transform 0.2s ease-in-out; }
         .featured-car-card:hover { transform: translateY(-5px); }
-        
         #featuredCarsCarousel .carousel-control-prev,
         #featuredCarsCarousel .carousel-control-next { width: 5%; }
 
-        /* === YENİ HERO STİLLERİ === */
+        /* --- Hero Bölümü Stilleri (Yapısal) --- */
         .hero-section {
-            position: relative;
-            height: 60vh; min-height: 450px;
-            background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&h=800&fit=crop');
-            background-size: cover; background-position: center;
-            border-radius: 1rem; padding: 2rem;
-            display: flex; flex-direction: column; justify-content: space-between;
-            color: white; overflow: hidden;
+            position: relative; width: 100vw; height: 65vh; min-height: 550px;
+            overflow: hidden; display: flex; align-items: flex-end;
         }
-        .hero-section::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.6) 100%); z-index: 1; }
-        .hero-content, .hero-form-wrapper { position: relative; z-index: 2; }
-        .hero-content h1 { font-size: 3.2rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .hero-content p { font-size: 1.25rem; text-shadow: 0 1px 3px rgba(0,0,0,0.4); max-width: 500px; }
-        
-        /* === YENİ ARAMA FORMU STİLLERİ === */
-        .hero-form-wrapper .card {
-            background-color: #ffffff;
-            border: none;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            border-radius: 0.5rem;
+        .hero-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; object-position: center; z-index: 1;
         }
-        .hero-form-wrapper .form-control, .hero-form-wrapper .form-select {
-            border: none;
+        .hero-form-wrapper {
+            position: relative; z-index: 2; background: #ffffff; border-radius: 12px;
+            padding: 20px 25px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            width: 380px; margin-left: 10%; margin-bottom: 2rem;
+        }
+
+        /* --- YENİ EKLENEN FORM GÜZELLEŞTİRME --- */
+        .hero-form-wrapper .nav-tabs {
+            border-bottom: none; /* Alttaki çizgiyi kaldır */
+        }
+        .hero-form-wrapper .nav-tabs .nav-link {
+            font-weight: 600; color: #555; border: none;
+            background-color: #f0f0f0; /* Pasif tab rengi */
+            margin-right: 5px; border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+        }
+        .hero-form-wrapper .nav-tabs .nav-link.active {
+            background-color: #ff6600; /* Aktif tab rengi (Turuncu) */
+            color: #fff;
+        }
+        .hero-form-wrapper .form-control,
+        .hero-form-wrapper .form-select {
+            padding: 0.8rem 1rem; height: 52px; font-weight: 600; font-size: 0.95rem;
+            border: 1px solid #e0e0e0; border-radius: 8px;
             background-color: #f8f9fa;
-            height: 48px;
+            transition: all 0.2s ease;
+        }
+        .hero-form-wrapper .form-control:focus,
+        .hero-form-wrapper .form-select:focus {
+            background-color: #ffffff; border-color: #ff6600; /* Odaklanınca turuncu kenarlık */
+            box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.15);
+        }
+        .hero-form-wrapper .form-select {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23495057' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 1rem center;
+            background-size: 16px 12px; padding-right: 2.5rem; 
+        }
+        .hero-form-wrapper .form-control::placeholder {
+            color: #9fa5ab; font-weight: 500;
+        }
+        .hero-form-wrapper .btn-discover {
+            background-color: #ff6600; border-color: #ff6600; color: #fff;
+            font-weight: bold; padding: 0.75rem; height: 52px;
+            transition: all 0.2s ease;
+        }
+        .hero-form-wrapper .btn-discover:hover {
+            background-color: #e55a00; border-color: #e55a00;
+            box-shadow: 0 3px 10px rgba(255, 102, 0, 0.3);
+        }
+        
+        /* --- YENİ EKLENEN TAKVİM GÜZELLEŞTİRME (Litepicker) --- */
+        /* --- YENİ EKLENEN TAKVİM GÜZELLEŞTİRME (Litepicker) --- */
+        .litepicker {
+            font-family: 'Open Sans', sans-serif; /* Temanın fontuyla uyumlu yap */
+            border-radius: 12px !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12) !important;
+            border: 1px solid #eee !important;
+        }
+        .litepicker .container__months .month-item-header {
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            color: #333;
+        }
+        /* Ay/Yıl dropdown'larını formlarımızla aynı yap */
+        .litepicker .month-item-header select {
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            padding: 0.3rem 0.5rem;
+        }
+        .litepicker .day-item.is-start-date {
+            background-color: #ff6600 !important; /* Marka rengimiz (Turuncu) */
+            color: #fff !important;
+            border-radius: 1rem 0 0 1rem !important;
+        }
+        .litepicker .day-item.is-end-date {
+            background-color: #ff6600 !important; /* Marka rengimiz (Turuncu) */
+            color: #fff !important;
+            border-radius: 0 1rem 1rem 0 !important;
+        }
+        .litepicker .day-item.is-in-range {
+            background-color: rgba(255, 102, 0, 0.1) !important; /* Turuncunun açığı */
+            color: #333 !important;
+            border-radius: 0 !important;
+        }
+        .litepicker .day-item:hover {
+            background-color: rgba(255, 102, 0, 0.3) !important;
+            border-radius: 0.5rem !important;
+        }
+        .litepicker .day-item.is-today {
+            color: #ff6600 !important;
+            font-weight: 700;
         }
         .time-select {
             width: 110px !important;
@@ -132,4 +209,6 @@
             </div>
             <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
         <?php endif; ?>
+            
+
 
