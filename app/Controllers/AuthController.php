@@ -11,9 +11,10 @@ class AuthController extends BaseController {
      public function __construct() {
         // Google Provider'ı (Sağlayıcı) Client ID ve Secret ile başlat
         // BU BİLGİLERİ Adım 1'de aldıklarınla değiştir.
+        $secrets = require __DIR__ . '/../../config/secrets.php';
         $this->googleProvider = new Google([
-            'clientId'     => '495685289285-o3hlaffesmo5r3osqoe5pgrarbqrvf12.apps.googleusercontent.com', // Adım 1'de aldığın ID
-            'clientSecret' => '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', // Adım 1'de aldığın Secret
+            'clientId'     => $secrets['GOOGLE_CLIENT_ID'],     // Değişti
+            'clientSecret' => $secrets['GOOGLE_CLIENT_SECRET'], // Değişti
             'redirectUri'  => 'http://localhost/rentacar/public/auth/google/callback',
         ]);
     }

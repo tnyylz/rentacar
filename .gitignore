@@ -1,0 +1,5 @@
+# Composer bağımlılıkları
+/vendor/
+
+# Gizli anahtarları ve yapılandırmaları içeren dosya
+/config/secrets.php 
