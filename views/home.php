@@ -2,7 +2,7 @@
 
 </div>
 
-<div class="hero-section mb-5">
+<div class="hero-section mb-1">
     
     <!-- Arka Plan Resmi -->
     <img src="/rentacar/public/images/heroes/inelsan.png" alt="İnelsan Rent A Car" class="hero-img">
@@ -49,7 +49,7 @@
 
 
 
-<div class="container">
+<div class="container my-5">
 
 <!-- Araç Listesi Alanı (AJAX ile güncellenecek olan kısım) -->
 <div id="car-list-container">
@@ -110,7 +110,48 @@
     </button>
 </div>
 
+<div class="container my-5 py-5">
+    <h2 class="text-center mb-5">3 Adımda Kolayca Kiralayın</h2>
+    <div class="row text-center g-4">
+        
+        <!-- Adım 1 -->
+        <div class="col-lg-4 col-md-12">
+            <div class="how-it-works-icon">
+                <i class="bi bi-search"></i> <!-- Arama İkonu -->
+            </div>
+            <h5 class="fw-bold mt-3">1. Aracını Bul</h5>
+            <p class="text-muted">Gelişmiş harita veya akıllı arama formunu kullanarak yüzlerce araç içinden sana en uygun olanı saniyeler içinde bul.</p>
+        </div>
+        
+        <!-- Adım 2 -->
+        <div class="col-lg-4 col-md-12">
+            <div class="how-it-works-icon">
+                <i class="bi bi-calendar-check"></i> <!-- Takvim İkonu -->
+            </div>
+            <h5 class="fw-bold mt-3">2. Rezerve Et</h5>
+            <p class="text-muted">Sana uyan tarihleri seç, toplam tutarı anında gör ve rezervasyonunu güvenli bir şekilde tamamla.</p>
+        </div>
+        
+        <!-- Adım 3 -->
+        <div class="col-lg-4 col-md-12">
+            <div class="how-it-works-icon">
+                <i class="bi bi-key-fill"></i> <!-- Anahtar İkonu -->
+            </div>
+            <h5 class="fw-bold mt-3">3. Keyfini Çıkar</h5>
+            <p class="text-muted">Seçtiğin lokasyondan aracını teslim al ve yolculuğun keyfini çıkarmaya başla. İyi yolculuklar!</p>
+        </div>
+        
+    </div>
+</div>
 
+<div class="container my-5">
+    <div class="cta-banner">
+        <h3>Filomuzu Keşfetmeye Hazır Mısınız?</h3>
+        <p class="lead text-muted">Size en uygun aracı bulun, rezervasyonunuzu hemen tamamlayın.</p>
+        <!-- Not: Bu link, kullanıcıyı sayfanın en üstündeki arama formuna geri götürür -->
+        <a href="#navbarContent" class="btn btn-primary">Tüm Araçları Filtrele</a>
+    </div>
+</div>
 
  <hr class="my-5">
     <div class="container mb-5">
@@ -193,6 +234,95 @@
     <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span></button>
 </div>
 <?php endif; ?>
+
+
+ <div class="container my-5 py-5">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="trust-badge">
+                    <div class="icon"><i class="bi bi-shield-check"></i></div>
+                    <div>
+                        <h6>%100 Güvenli Ödeme</h6>
+                        <p class="mb-0">Tüm ödemeleriniz SSL sertifikası ile korunmaktadır.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="trust-badge">
+                    <div class="icon"><i class="bi bi-clock-history"></i></div>
+                    <div>
+                        <h6>7/24 Yol Yardımı</h6>
+                        <p class="mb-0">Yolculuğunuz sırasında bir sorunla karşılaşırsanız yanınızdayız.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="trust-badge">
+                    <div class="icon"><i class="bi bi-patch-check-fill"></i></div>
+                    <div>
+                        <h6>Tam Kapsamlı Kasko</h6>
+                        <p class="mb-0">Tüm araçlarımızda endişesiz bir sürüş için tam kasko.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+<div class="container my-5 faq-section">
+        <h2 class="text-center mb-5">Sıkça Sorulan Sorular</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="accordion" id="faqAccordion">
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Kiralama için yaş sınırı ve ehliyet süresi nedir?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Araç kiralamak için en az 21 yaşında olmanız ve minimum 1 yıllık B grubu ehliyete sahip olmanız gerekmektedir. Lüks ve Premium kategorideki araçlar için yaş sınırı 25, ehliyet süresi ise minimum 3 yıldır.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Fiyatlara neler dahildir?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Belirtilen günlük fiyatlara <strong>Zorunlu Trafik Sigortası</strong> ve <strong>Standart Kasko</strong> dahildir. Yakıt, ek sürücü, bebek koltuğu ve navigasyon gibi ek hizmetler fiyata dahil değildir.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Rezervasyonumu nasıl iptal edebilirim?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Giriş yaptıktan sonra, "Rezervasyonlarım" sayfanız üzerinden, kiralama başlangıç saatinizden 24 saat öncesine kadar rezervasyonunuzu ücretsiz olarak iptal edebilirsiniz. 24 saatten az kalan sürelerde yapılan iptallerde 1 günlük kiralama bedeli kesintisi uygulanabilir.
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>    
+
+
+
+
 </div>
 
 

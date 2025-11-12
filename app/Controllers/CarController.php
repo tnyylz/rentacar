@@ -10,26 +10,27 @@ class CarController extends BaseController   {
      */
    public function show() {
         $car_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-        if (!$car_id) {
-            $this->showNotFound();
-        }
+        if (!$car_id) { $this->showNotFound(); }
 
-        require_once __DIR__ . '/../../config/db.php';
+        $conn = \App\Database::getInstance()->getConnection();
         
-        // Aracı çek
-        $stmt = $conn->prepare("SELECT * FROM cars WHERE car_id = ?");
+        // --- SORGULAMA GÜNCELLENDİ (JOIN l ON...) ---
+        // Artık aracın 'location_name' bilgisini de çekiyoruz
+        $sql = "SELECT c.*, l.location_name 
+                FROM cars c
+                LEFT JOIN locations l ON c.current_location_id = l.location_id
+                WHERE c.car_id = ?";
+        
+        $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $car_id);
         $stmt->execute();
         $result = $stmt->get_result();
         $car = $result->fetch_assoc();
         $stmt->close();
 
-        if (!$car) {
-            $conn->close();
-            $this->showNotFound();
-        }
+        if (!$car) { $conn->close(); $this->showNotFound(); }
 
-        // Ortalama Puanı ve Yorum Sayısını Çek
+        // --- YORUM VE PUANLAMA KODU ---
         $rating_sql = "SELECT AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE car_id = ?";
         $stmt_rating = $conn->prepare($rating_sql);
         $stmt_rating->bind_param("i", $car_id);
@@ -37,7 +38,6 @@ class CarController extends BaseController   {
         $rating_info = $stmt_rating->get_result()->fetch_assoc();
         $stmt_rating->close();
 
-        // Yorumları Çek
         $reviews_sql = "SELECT r.rating, r.comment, r.created_at, u.first_name, u.last_name 
                         FROM reviews r 
                         JOIN users u ON r.user_id = u.user_id 
@@ -49,42 +49,33 @@ class CarController extends BaseController   {
         $reviews = $stmt_reviews->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt_reviews->close();
         
-        // --- YENİ EKLENEN KOD: YORUM YAPMA HAKKI KONTROLÜ ---
+        // --- YORUM YAPMA HAKKI KONTROLÜ ---
         $eligible_reservation_id = null;
         if (isset($_SESSION['user_id'])) {
             $user_id = $_SESSION['user_id'];
-            
-            // Bu kullanıcının, bu araç için, 'Tamamlandı' durumunda olan VE HENÜZ YORUM YAPILMAMIŞ bir rezervasyonu var mı?
             $check_sql = "SELECT r.reservation_id 
                           FROM reservations r
-                          LEFT JOIN reviews rev ON r.reservation_id = rev.reservation_id
+                          LEFT JOIN reviews rev ON r.reservation_id = rev.review_id
                           WHERE r.user_id = ? 
                           AND r.car_id = ? 
                           AND r.status = 'Tamamlandı' 
                           AND rev.review_id IS NULL 
                           LIMIT 1";
-
             $stmt_check = $conn->prepare($check_sql);
             $stmt_check->bind_param("ii", $user_id, $car_id);
             $stmt_check->execute();
             $result_check = $stmt_check->get_result();
-            
             if ($result_check->num_rows > 0) {
-                // Eğer varsa, yorum yapabileceği rezervasyonun ID'sini al
                 $eligible_reservation_id = $result_check->fetch_assoc()['reservation_id'];
             }
             $stmt_check->close();
         }
-        // --- YENİ KOD SONU ---
 
-        $conn->close();
-
-        // Tüm verileri view'e gönder
         $this->loadView('car_detail', [
-            'car' => $car,
+            'car' => $car, // Bu $car dizisi artık 'location_name' anahtarını da içeriyor
             'rating_info' => $rating_info,
             'reviews' => $reviews,
-            'eligible_reservation_id' => $eligible_reservation_id // Değişken artık burada tanımlı ve gönderiliyor
+            'eligible_reservation_id' => $eligible_reservation_id
         ]);
     }
 

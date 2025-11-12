@@ -1,6 +1,6 @@
 <?php require_once 'includes/header.php'; ?>
 
-<h1 class="mb-4">Rezervasyonlarım</h1>
+<h1 class="mb-4 my-3">Rezervasyonlarım</h1>
 
 <h2 class="h4">Aktif ve Gelecek Rezervasyonlar</h2>
 <?php if (!empty($active_reservations)): ?>

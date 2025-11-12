@@ -1,6 +1,6 @@
 <?php require_once 'includes/header.php'; ?>
 
-<h1 class="mb-4">Profilim</h1>
+<h1 class="mb-4 my-3">Profilim</h1>
 
 <div class="row">
     <!-- Sol Sütun: Mevcut Resim -->

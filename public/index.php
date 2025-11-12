@@ -25,6 +25,11 @@ switch ($route) {
         $controller->index();
         break;
 
+    case 'about':
+        $controller = new App\Controllers\HomeController();
+        $controller->showAboutPage();
+        break;
+
     // --- YENİ KULLANICI ROTALARI ---
     case 'register':
         $controller = new App\Controllers\AuthController();
@@ -40,6 +45,16 @@ switch ($route) {
         $controller = new App\Controllers\AuthController();
         $controller->login();
         break;
+
+    case 'auth/google':
+        $controller = new App\Controllers\AuthController();
+        $controller->redirectToGoogle();
+        break;
+    
+    case 'auth/google/callback':
+        $controller = new App\Controllers\AuthController();
+        $controller->handleGoogleCallback();
+        break;    
 
     case 'logout':
         $controller = new App\Controllers\AuthController();

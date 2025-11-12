@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Araç Kiralama Projesi</title>
     
-    <!-- Lumen Tema CSS'i -->
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Diğer CSS Dosyaları -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
-    <!-- === YENİ LITEPCIKER CSS === -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
 
-    <!-- Sayfaya Özel Stilleriniz -->
     <style>
       #map { height: 400px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         .calendar-aspect-ratio-wrapper { position: relative; width: 100%; height: 0; padding-bottom: 100%; }
@@ -43,18 +40,18 @@
             width: 380px; margin-left: 10%; margin-bottom: 2rem;
         }
 
-        /* --- YENİ EKLENEN FORM GÜZELLEŞTİRME --- */
+        
         .hero-form-wrapper .nav-tabs {
-            border-bottom: none; /* Alttaki çizgiyi kaldır */
+            border-bottom: none; 
         }
         .hero-form-wrapper .nav-tabs .nav-link {
             font-weight: 600; color: #555; border: none;
-            background-color: #f0f0f0; /* Pasif tab rengi */
+            background-color: #f0f0f0; 
             margin-right: 5px; border-radius: 8px;
             padding: 0.6rem 1.2rem;
         }
         .hero-form-wrapper .nav-tabs .nav-link.active {
-            background-color: #ff6600; /* Aktif tab rengi (Turuncu) */
+            background-color: #ff6600; 
             color: #fff;
         }
         .hero-form-wrapper .form-control,
@@ -66,7 +63,7 @@
         }
         .hero-form-wrapper .form-control:focus,
         .hero-form-wrapper .form-select:focus {
-            background-color: #ffffff; border-color: #ff6600; /* Odaklanınca turuncu kenarlık */
+            background-color: #ffffff; border-color: #ff6600;
             box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.15);
         }
         .hero-form-wrapper .form-select {
@@ -88,10 +85,9 @@
             box-shadow: 0 3px 10px rgba(255, 102, 0, 0.3);
         }
         
-        /* --- YENİ EKLENEN TAKVİM GÜZELLEŞTİRME (Litepicker) --- */
-        /* --- YENİ EKLENEN TAKVİM GÜZELLEŞTİRME (Litepicker) --- */
+      
         .litepicker {
-            font-family: 'Open Sans', sans-serif; /* Temanın fontuyla uyumlu yap */
+            font-family: 'Open Sans', sans-serif; 
             border-radius: 12px !important;
             box-shadow: 0 10px 40px rgba(0,0,0,0.12) !important;
             border: 1px solid #eee !important;
@@ -101,7 +97,7 @@
             font-size: 1rem !important;
             color: #333;
         }
-        /* Ay/Yıl dropdown'larını formlarımızla aynı yap */
+        
         .litepicker .month-item-header select {
             font-weight: 600;
             font-size: 0.9rem;
@@ -111,17 +107,17 @@
             padding: 0.3rem 0.5rem;
         }
         .litepicker .day-item.is-start-date {
-            background-color: #ff6600 !important; /* Marka rengimiz (Turuncu) */
+            background-color: #ff6600 !important; 
             color: #fff !important;
             border-radius: 1rem 0 0 1rem !important;
         }
         .litepicker .day-item.is-end-date {
-            background-color: #ff6600 !important; /* Marka rengimiz (Turuncu) */
+            background-color: #ff6600 !important; 
             color: #fff !important;
             border-radius: 0 1rem 1rem 0 !important;
         }
         .litepicker .day-item.is-in-range {
-            background-color: rgba(255, 102, 0, 0.1) !important; /* Turuncunun açığı */
+            background-color: rgba(255, 102, 0, 0.1) !important; 
             color: #333 !important;
             border-radius: 0 !important;
         }
@@ -138,11 +134,119 @@
             flex-basis: 110px !important;
             flex-grow: 0 !important;
         }
+        .how-it-works-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 102, 0, 0.1); /* Turuncu arka plan */
+            color: #ff6600; /* Turuncu ikon rengi */
+            font-size: 2.5rem; /* İkon boyutu */
+            border-radius: 50%; /* Tam yuvarlak */
+            margin-bottom: 1.5rem;
+        }
+         .cta-banner {
+            background-color: #f8f9fa; /* Lumen temasının açık gri rengi */
+            border-radius: 1rem; /* Sitedeki diğer öğelerle uyumlu yuvarlak köşe */
+            padding: 3rem 2rem;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            transition: box-shadow 0.3s ease;
+        }
+        .cta-banner:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        .cta-banner h3 {
+            font-weight: 700;
+            color: #333;
+        }
+        .cta-banner p {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 1.5rem;
+        }
+        .cta-banner .btn-primary {
+            background-color: #ff6600; /* Marka rengin (Turuncu) */
+            border-color: #ff6600;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+        .cta-banner .btn-primary:hover {
+            background-color: #e55a00;
+            border-color: #e55a00;
+            transform: scale(1.03); /* Hafif büyüme efekti */
+            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+        }
+        .why-us-icon-wrapper {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 70px; height: 70px;
+            margin-bottom: 1.5rem;
+            border-radius: 50%;
+        }
+        .bg-primary-soft { background-color: rgba(13,110,253,0.1); }
+        .bg-success-soft { background-color: rgba(25,135,84,0.1); }
+        .bg-warning-soft { background-color: rgba(255,193,7,0.1); }
+        .bg-danger-soft { background-color: rgba(220,53,69,0.1); }
+        
+        /* === YENİ CTA BANNER STİLLERİ === */
+        .cta-banner {
+            background-color: #f8f9fa; border-radius: 1rem; padding: 3rem 2rem;
+            text-align: center; border: 1px solid #e9ecef;
+            transition: box-shadow 0.3s ease;
+        }
+        .cta-banner:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+        .cta-banner h3 { font-weight: 700; color: #333; }
+        .cta-banner .btn-primary {
+            background-color: #ff6600; border-color: #ff6600; font-weight: 600;
+            padding: 0.75rem 1.5rem; font-size: 1.1rem;
+        }
+        
+        /* === YENİ SSS (FAQ) AKORDİYON STİLLERİ === */
+        .faq-section .accordion-item {
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: .75rem !important;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .faq-section .accordion-button {
+            font-weight: 600;
+            color: #2b2d42;
+            background-color: #fff;
+            border-radius: .75rem !important;
+        }
+        .faq-section .accordion-button:not(.collapsed) {
+            background-color: #f8f9fa;
+            color: #ff6600; /* Aktifken turuncu */
+            box-shadow: none;
+        }
+        .faq-section .accordion-button:focus { box-shadow: none; }
+        .faq-section .accordion-body { color: #555; }
+        
+        /* === YENİ GÜVEN ROZETLERİ STİLLERİ === */
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 1rem;
+            transition: transform 0.2s ease;
+        }
+        .trust-badge:hover { transform: translateY(-5px); }
+        .trust-badge .icon {
+            font-size: 2.5rem;
+            color: #ff6600; /* Turuncu */
+            margin-right: 1.5rem;
+        }
+        .trust-badge h6 { font-weight: 700; margin-bottom: 0.25rem; }
+        .trust-badge p { color: #6c757d; margin-bottom: 0; }
     </style>
 </head>
 <body>
     
-    <!-- === DİNAMİK NAVİGASYON MENÜSÜ === -->
     <nav class="navbar navbar-expand-lg bg-light" data-bs-theme="light">
       <div class="container">
         <a class="navbar-brand fw-bold" href="/rentacar/public/home">İnelsan</a>
@@ -154,7 +258,9 @@
             <li class="nav-item">
               <a class="nav-link active" href="/rentacar/public/home">Ana Sayfa</a>
             </li>
-
+            <li class="nav-item">
+            <a class="nav-link" href="/rentacar/public/about">Hakkımızda</a>
+            </li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="/rentacar/public/my_reservations">Rezervasyonlarım</a>
@@ -201,7 +307,7 @@
     <!-- === MENÜ SONU === -->
 
     <!-- === SAYFA İÇERİĞİ BAŞLANGICI === -->
-    <div class="container mt-4">
+    <div class="container">
         <?php if (isset($_SESSION['message'])): ?>
             <div class="alert alert-<?php echo $_SESSION['message_type'] ?? 'info'; ?> alert-dismissible fade show" role="alert">
                 <?php echo $_SESSION['message']; ?>

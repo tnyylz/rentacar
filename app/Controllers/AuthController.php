@@ -1,8 +1,122 @@
 <?php
-
 namespace App\Controllers;
 use App\BaseController;
+use League\OAuth2\Client\Provider\Google;
+
+
+
+
 class AuthController extends BaseController {
+    private $googleProvider;
+     public function __construct() {
+        // Google Provider'ı (Sağlayıcı) Client ID ve Secret ile başlat
+        // BU BİLGİLERİ Adım 1'de aldıklarınla değiştir.
+        $this->googleProvider = new Google([
+            'clientId'     => '495685289285-o3hlaffesmo5r3osqoe5pgrarbqrvf12.apps.googleusercontent.com', // Adım 1'de aldığın ID
+            'clientSecret' => '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', // Adım 1'de aldığın Secret
+            'redirectUri'  => 'http://localhost/rentacar/public/auth/google/callback',
+        ]);
+    }
+
+public function redirectToGoogle() {
+        // Gerekli izinleri (scope) istiyoruz: e-posta, profil bilgileri
+        $authUrl = $this->googleProvider->getAuthorizationUrl([
+            'scope' => ['email', 'profile']
+        ]);
+        
+        // Kullanıcının oturum durumunu (state) kaydet
+        $_SESSION['oauth2state'] = $this->googleProvider->getState();
+        
+        // Kullanıcıyı Google'ın giriş sayfasına yönlendir
+        header('Location: ' . $authUrl);
+        exit();
+    }
+
+    // --- YENİ METOT 2: Google'dan Gelen Cevabı İşleme ---
+    public function handleGoogleCallback() {
+        // Güvenlik kontrolü: state'ler eşleşiyor mu?
+        if (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
+            unset($_SESSION['oauth2state']);
+            $_SESSION['message'] = "Geçersiz oturum durumu.";
+            $_SESSION['message_type'] = 'danger';
+            header('Location: /rentacar/public/home');
+            exit();
+        }
+
+        try {
+            // Gelen 'code'u kullanarak Google'dan 'access token' (erişim anahtarı) al
+            $token = $this->googleProvider->getAccessToken('authorization_code', [
+                'code' => $_GET['code']
+            ]);
+
+            // Bu 'token' ile kullanıcı bilgilerini Google'dan çek
+            $googleUser = $this->googleProvider->getResourceOwner($token);
+
+            $conn = \App\Database::getInstance()->getConnection();
+
+            // 1. Bu kullanıcı veritabanımızda zaten var mı? (E-postaya göre kontrol et)
+            $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+            $email = $googleUser->getEmail();
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $user = $result->fetch_assoc();
+            $stmt->close();
+
+            if ($user) {
+                // KULLANICI VARSA: Giriş yap ve Google ID'sini güncelle (eğer boşsa)
+                $user_id = $user['user_id'];
+                if (empty($user['google_id'])) {
+                    $stmt_update = $conn->prepare("UPDATE users SET google_id = ? WHERE user_id = ?");
+                    $google_id = $googleUser->getId();
+                    $stmt_update->bind_param("si", $google_id, $user_id);
+                    $stmt_update->execute();
+                    $stmt_update->close();
+                }
+            } else {
+                // KULLANICI YOKSA: Yeni bir kullanıcı oluştur
+                $stmt_insert = $conn->prepare("INSERT INTO users (first_name, last_name, email, google_id) VALUES (?, ?, ?, ?)");
+                $google_id = $googleUser->getId();
+                $first_name = $googleUser->getFirstName();
+                $last_name = $googleUser->getLastName();
+                $stmt_insert->bind_param("ssss", $first_name, $last_name, $email, $google_id);
+
+                $stmt_insert->execute();
+                $user_id = $stmt_insert->insert_id;
+                $stmt_insert->close();
+                
+                // Yeni oluşturulan kullanıcıyı tekrar çek
+                $user = $conn->prepare("SELECT * FROM users WHERE user_id = ?");
+                $user->bind_param("i", $user_id);
+                $user->execute();
+                $user = $user->get_result()->fetch_assoc();
+            }
+
+            // KULLANICIYI GİRİŞ YAPTIR (SESSION'LARI AYARLA)
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['first_name'] = $user['first_name'];
+            $_SESSION['last_name'] = $user['last_name'];
+            $_SESSION['role'] = $user['role'];
+
+            header('Location: /rentacar/public/home');
+            exit();
+
+        } catch (\Exception $e) {
+            // Hata oluşursa
+            $_SESSION['message'] = "Google ile giriş yaparken bir hata oluştu: " . $e->getMessage();
+            $_SESSION['message_type'] = 'danger';
+            header('Location: /rentacar/public/home');
+            exit();
+        }
+    }
+
+
+
+
+
+
+
+
 
     public function showRegisterForm() {
         $this->loadView('register');

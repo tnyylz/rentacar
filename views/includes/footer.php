@@ -25,9 +25,10 @@
                 <h6 class="fw-bold mb-3">Hızlı Menü</h6>
                 <ul class="list-unstyled">
                     <li class="mb-2"><a href="/rentacar/public/home" class="text-muted text-decoration-none">Ana Sayfa</a></li>
-                    <li class="mb-2"><a href="/rentacar/public/register" class="text-muted text-decoration-none">Kayıt Ol</a></li>
-                    <li class="mb-2"><a href="#" id="loginModalBtnFooter" class="text-muted text-decoration-none">Giriş Yap</a></li>
+                    <!-- YENİ LİNK EKLENDİ -->
+                    <li class="mb-2"><a href="/rentacar/public/about" class="text-muted text-decoration-none">Hakkımızda</a></li>
                     <li class="mb-2"><a href="/rentacar/public/my_reservations" class="text-muted text-decoration-none">Rezervasyonlarım</a></li>
+                    <li class="mb-2"><a href="/rentacar/public/profile" class="text-muted text-decoration-none">Profilim</a></li>
                 </ul>
             </div>
 
@@ -67,28 +68,48 @@
     </div>
 
     <div class="modal fade" id="loginModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Giriş Yap</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Giriş Yap</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <form action="/rentacar/public/login-submit" method="post">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-posta Adresi</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Şifre</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+                </form>
+
+
+                <div class="d-flex align-items-center my-3">
+                                    <hr class="flex-grow-1">
+                    <span class="px-2 text-muted small">veya</span>
+                    <hr class="flex-grow-1">
                 </div>
-                <div class="modal-body">
-                    <form action="/rentacar/public/login-submit" method="post">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">E-posta Adresi</label>
-                            <input type="email" class="form-control" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Şifre</label>
-                            <input type="password" class="form-control" name="password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
-                    </form>
-                </div>
+
+
+
+
+
+                <!-- Google ile Giriş Butonu -->
+                <a href="/rentacar/public/auth/google" class="btn btn-danger w-100 mb-3">
+                    <i class="bi bi-google"></i> Google ile Giriş Yap
+                </a>
+
+              
+                
             </div>
         </div>
     </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -203,13 +224,15 @@
         const returnDateInput = document.getElementById('return_date');
 
         if (pickupDateInput && returnDateInput) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
             const picker = new Litepicker({
                 element: pickupDateInput,
                 elementEnd: returnDateInput,
                 singleMode: false,
                 allowRepick: true,
                 format: 'DD.MM.YYYY',
-                minDate: new Date(),
+                minDate: today,
                 numberOfMonths: 2,
                 dropdowns: {
                     minYear: new Date().getFullYear(),

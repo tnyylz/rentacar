@@ -103,6 +103,10 @@ class HomeController extends BaseController {
         ]);
     }
 
-
+public function showAboutPage() {
+        // Bu sayfa statik olduğu için özel bir veriye ihtiyacı yok.
+        // Sadece view'i yüklüyoruz.
+        $this->loadView('about');
+    }
     
 }

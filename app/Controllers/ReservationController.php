@@ -8,82 +8,88 @@ use DateTime;
 class ReservationController extends BaseController {
 
     public function create() {
-        // 1. Kullanıcı giriş yapmış mı?
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['message'] = "Rezervasyon yapmak için giriş yapmalısınız.";
             $_SESSION['message_type'] = 'danger';
-            header('Location: ' . $_SERVER['HTTP_REFERER']); // Bir önceki sayfaya geri yolla
+            header('Location: ' . $_SERVER['HTTP_REFERER']);
             exit();
         }
 
-        // 2. Form verilerini al
+        // --- YENİ FORM ALANLARI ALINIYOR ---
         $car_id = $_POST['car_id'];
         $user_id = $_SESSION['user_id'];
-        $start_date_str = $_POST['start_date'];
-        $end_date_str = $_POST['end_date'];
+        $pickup_date_str = $_POST['pickup_date']; // örn: 12.11.2025
+        $pickup_time_str = $_POST['pickup_time']; // örn: 10:00
+        $return_date_str = $_POST['return_date']; // örn: 14.11.2025
+        $return_time_str = $_POST['return_time']; // örn: 10:00
         $pickup_location_id = $_POST['pickup_location_id'];
         $dropoff_location_id = $_POST['dropoff_location_id'];
         $daily_rate = $_POST['daily_rate'];
+        // --- GÜNCELLEME SONU ---
 
-        // 3. Tarihleri doğrula
-        $start_date = new DateTime($start_date_str);
-        $end_date = new DateTime($end_date_str);
-        $now = new DateTime();
+        try {
+            // Tarihleri SQL formatına çevir (YYYY-MM-DD HH:MM:SS)
+            $start_date_obj = DateTime::createFromFormat('d.m.Y', $pickup_date_str);
+            $end_date_obj = DateTime::createFromFormat('d.m.Y', $return_date_str);
+            
+            if (!$start_date_obj || !$end_date_obj) {
+                throw new \Exception("Geçersiz tarih formatı.");
+            }
 
-        if ($start_date < $now || $start_date >= $end_date) {
-            $_SESSION['message'] = "Geçersiz tarih aralığı seçtiniz.";
-            $_SESSION['message_type'] = 'danger';
-            header('Location: ' . $_SERVER['HTTP_REFERER']);
-            exit();
-        }
+            $start_datetime_sql = $start_date_obj->format('Y-m-d') . ' ' . $pickup_time_str . ':00';
+            $end_datetime_sql = $end_date_obj->format('Y-m-d') . ' ' . $return_time_str . ':00';
 
-        // 4. Aracın müsait olup olmadığını kontrol et (EN ÖNEMLİ KISIM)
-        require __DIR__ . '/../../config/db.php';
-        $stmt = $conn->prepare("SELECT reservation_id FROM reservations 
-                                WHERE car_id = ? 
-                                AND status IN ('Onaylandı', 'Beklemede')
-                                AND NOT (end_date <= ? OR start_date >= ?)");
-        $stmt->bind_param("iss", $car_id, $start_date_str, $end_date_str);
-        $stmt->execute();
-        $stmt->store_result();
+            // Tarihleri doğrula
+            $start_date = new DateTime($start_datetime_sql);
+            $end_date = new DateTime($end_datetime_sql);
+            $now = new DateTime();
 
-        if ($stmt->num_rows > 0) {
-            // Eğer bu sorgu bir sonuç döndürürse, o tarihler arasında çakışan bir rezervasyon var demektir.
+            if ($start_date < $now || $start_date >= $end_date) {
+                throw new \Exception("Geçersiz tarih aralığı seçtiniz.");
+            }
+        
+            $conn = \App\Database::getInstance()->getConnection();
+            
+            // Aracın müsait olup olmadığını kontrol et
+            $stmt = $conn->prepare("SELECT reservation_id FROM reservations WHERE car_id = ? AND status IN ('Onaylandı', 'Beklemede') AND NOT (end_date <= ? OR start_date >= ?)");
+            $stmt->bind_param("iss", $car_id, $start_datetime_sql, $end_datetime_sql); // SQL formatlı tarihleri kullan
+            $stmt->execute();
+            $stmt->store_result();
+
+            if ($stmt->num_rows > 0) {
+                $stmt->close();
+                throw new \Exception("Maalesef bu araç seçtiğiniz tarihler arasında rezerve edilmiş.");
+            }
             $stmt->close();
-            $conn->close();
-            $_SESSION['message'] = "Maalesef bu araç seçtiğiniz tarihler arasında rezerve edilmiş.";
+
+            // Fiyatı hesapla
+            $interval = $start_date->diff($end_date);
+            $days = $interval->days;
+            if ($interval->h > 0 || $interval->i > 0 || $interval->s > 0) {
+                $days++;
+            }
+            $total_price = $days * $daily_rate;
+
+            // Rezervasyonu veritabanına ekle
+            $stmt = $conn->prepare("INSERT INTO reservations (user_id, car_id, start_date, end_date, pickup_location_id, dropoff_location_id, total_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Onaylandı')");
+            $stmt->bind_param("iissiid", $user_id, $car_id, $start_datetime_sql, $end_datetime_sql, $pickup_location_id, $dropoff_location_id, $total_price);
+
+            if ($stmt->execute()) {
+                $_SESSION['message'] = "Rezervasyonunuz başarıyla oluşturuldu! Toplam Tutar: " . $total_price . " TL";
+                $_SESSION['message_type'] = 'success';
+                header("Location: /rentacar/public/home");
+            } else {
+                throw new \Exception("Rezervasyon sırasında bir veritabanı hatası oluştu: " . $stmt->error);
+            }
+            $stmt->close();
+            exit();
+
+        } catch (\Exception $e) {
+            $_SESSION['message'] = $e->getMessage();
             $_SESSION['message_type'] = 'danger';
-            header('Location: ' . $_SERVER['HTTP_REFERER']);
+            header('Location: ' . $_SERVER['HTTP_REFERER']); // Hata durumunda formu doldurduğu sayfaya geri dön
             exit();
         }
-        $stmt->close();
-
-        // 5. Fiyatı hesapla
-        $interval = $start_date->diff($end_date);
-        $days = $interval->days;
-        if ($interval->h > 0 || $interval->i > 0 || $interval->s > 0) {
-            $days++; // Gün farkına ek olarak saat/dakika farkı varsa, bir gün daha ekle
-        }
-        $total_price = $days * $daily_rate;
-
-        // 6. Rezervasyonu veritabanına ekle
-        $stmt = $conn->prepare("INSERT INTO reservations (user_id, car_id, start_date, end_date, pickup_location_id, dropoff_location_id, total_price, status) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, 'Onaylandı')");
-        $stmt->bind_param("iissiid", $user_id, $car_id, $start_date_str, $end_date_str, $pickup_location_id, $dropoff_location_id, $total_price);
-
-        if ($stmt->execute()) {
-            $_SESSION['message'] = "Rezervasyonunuz başarıyla oluşturuldu! Toplam Tutar: " . $total_price . " TL";
-            $_SESSION['message_type'] = 'success';
-            header("Location: /rentacar/public/home"); // Başarı durumunda ana sayfaya yolla
-        } else {
-            $_SESSION['message'] = "Rezervasyon sırasında bir hata oluştu: " . $stmt->error;
-            $_SESSION['message_type'] = 'danger';
-            header('Location: ' . $_SERVER['HTTP_REFERER']);
-        }
-
-        $stmt->close();
-        $conn->close();
-        exit();
     }
 
 public function cancel() {

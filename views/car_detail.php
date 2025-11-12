@@ -1,7 +1,7 @@
 <?php require_once 'includes/header.php'; ?>
 <?php if (isset($car)): ?>
     
-    <div class="row g-5">
+    <div class="row my-3 g-5">
         
         <div class="col-lg-7">
             <h1 class="mb-1"><?php echo htmlspecialchars($car['brand'] . ' ' . $car['model']); ?></h1>
@@ -48,19 +48,61 @@
             </div>
             
             <div class="collapse mt-4" id="reservationFormCollapse">
-                <div class="card card-body">
+                <div class="card card-body" style="background-color: #f8f9fa;">
                     <h3>Rezervasyon Detayları</h3>
                     <form action="/rentacar/public/create-reservation" method="POST">
                         <input type="hidden" name="car_id" value="<?php echo $car['car_id']; ?>">
                         <input type="hidden" name="daily_rate" value="<?php echo $car['daily_rate']; ?>">
+                        
                         <div class="row">
-                            <div class="col-md-6 mb-3"><label for="start_date" class="form-label">Alış Tarihi ve Saati</label><input type="datetime-local" class="form-control" id="start_date" name="start_date" required></div>
-                            <div class="col-md-6 mb-3"><label for="end_date" class="form-label">Teslim Tarihi ve Saati</label><input type="datetime-local" class="form-control" id="end_date" name="end_date" required></div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pickup_location" class="form-label">Alış Lokasyonu</label>
+                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($car['location_name'] ?? 'Belirtilmemiş'); ?>" disabled>
+                                <input type="hidden" name="pickup_location_id" value="<?php echo $car['current_location_id']; ?>">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dropoff_location" class="form-label">Teslim Lokasyonu</label>
+                                <select class="form-select" id="dropoff_location" name="dropoff_location_id" required>
+                                    <option selected disabled value="">Seçiniz...</option>
+                                    <?php 
+                                    $conn = \App\Database::getInstance()->getConnection();
+                                    $locations = $conn->query("SELECT * FROM locations WHERE status = 'Active'")->fetch_all(MYSQLI_ASSOC);
+                                    foreach ($locations as $location): ?>
+                                        <option value="<?php echo $location['location_id']; ?>"><?php echo htmlspecialchars($location['location_name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-7 mb-3">
+                                <label for="reservation_pickup_date" class="form-label">Alış Tarihi</label>
+                                <input type="text" class="form-control" id="reservation_pickup_date" name="pickup_date" placeholder="Tarih Seçin" required>
+                            </div>
+                            <div class="col-lg-5 mb-3">
+                                <label for="reservation_pickup_time" class="form-label">Alış Saati</label>
+                                <select name="pickup_time" id="reservation_pickup_time" class="form-select">
+                                    <?php for ($h = 0; $h < 24; $h++): $time = sprintf('%02d:00', $h); ?>
+                                        <option value="<?php echo $time; ?>" <?php echo ('10:00' == $time) ? 'selected' : ''; ?>><?php echo $time; ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3"><label for="pickup_location" class="form-label">Alış Lokasyonu</label><select class="form-select" id="pickup_location" name="pickup_location_id" required><option selected disabled value="">Seçiniz...</option><?php require __DIR__ . '/../config/db.php'; $locations_result = $conn->query("SELECT * FROM locations WHERE status = 'Active'"); while ($location = $locations_result->fetch_assoc()) { echo "<option value='{$location['location_id']}'>" . htmlspecialchars($location['location_name']) . "</option>"; } $conn->close(); ?></select></div>
-                            <div class="col-md-6 mb-3"><label for="dropoff_location" class="form-label">Teslim Lokasyonu</label><select class="form-select" id="dropoff_location" name="dropoff_location_id" required><option selected disabled value="">Seçiniz...</option><?php require __DIR__ . '/../config/db.php'; $locations_result = $conn->query("SELECT * FROM locations WHERE status = 'Active'"); while ($location = $locations_result->fetch_assoc()) { echo "<option value='{$location['location_id']}'>" . htmlspecialchars($location['location_name']) . "</option>"; } $conn->close(); ?></select></div>
+                            <div class="col-lg-7 mb-3">
+                                <label for="reservation_return_date" class="form-label">İade Tarihi</label>
+                                <input type="text" class="form-control" id="reservation_return_date" name="return_date" placeholder="Tarih Seçin" required>
+                            </div>
+                            <div class="col-lg-5 mb-3">
+                                <label for="reservation_return_time" class="form-label">İade Saati</label>
+                                 <select name="return_time" id="reservation_return_time" class="form-select">
+                                    <?php for ($h = 0; $h < 24; $h++): $time = sprintf('%02d:00', $h); ?>
+                                        <option value="<?php echo $time; ?>" <?php echo ('10:00' == $time) ? 'selected' : ''; ?>><?php echo $time; ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
                         </div>
+                        
                         <div id="price-calculation-result" class="my-3 text-center"></div>
                         <button type="submit" class="btn btn-primary w-100">Rezervasyonu Onayla</button>
                     </form>
@@ -119,47 +161,114 @@
 
 <?php if (isset($car)): ?>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            if (calendarEl) {
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    themeSystem: 'bootstrap5',
-                    locale: 'tr',
-                    initialView: 'dayGridMonth',
-                    headerToolbar: { left: 'prev', center: 'title', right: 'next' },
-                    events: '/rentacar/public/api/reservations?car_id=<?php echo $car['car_id']; ?>'
-                });
-                calendar.render();
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        if (calendarEl) {
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                themeSystem: 'bootstrap5',
+                locale: 'tr',
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+                events: '/rentacar/public/api/reservations?car_id=<?php echo $car['car_id']; ?>'
+            });
+            calendar.render();
+        }
+    });
+</script>
+
+<!-- Anlık Fiyat Hesaplama Script'i (GÜNCELLENDİ) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Form elemanlarını seç
+        const pickupDateInput = document.getElementById('reservation_pickup_date');
+        const returnDateInput = document.getElementById('reservation_return_date');
+        const pickupTimeSelect = document.getElementById('reservation_pickup_time');
+        const returnTimeSelect = document.getElementById('reservation_return_time');
+        const priceResultDiv = document.getElementById('price-calculation-result');
+        const dailyRate = document.querySelector('input[name="daily_rate"]').value;
+
+        // Fiyat hesaplama fonksiyonu
+        function calculatePrice() {
+            const startDate = pickupDateInput.value;
+            const endDate = returnDateInput.value;
+            const startTime = pickupTimeSelect.value;
+            const endTime = returnTimeSelect.value;
+
+            // Sadece tüm alanlar doluysa ve tarihler geçerliyse istek gönder
+            if (startDate && endDate && startTime && endTime) {
+                
+                // Litepicker D.M.Y formatında verdiği için, JS'in anlayacağı Y-M-D formatına çevir
+                const startDateTime = new Date(startDate.split('.').reverse().join('-') + 'T' + startTime);
+                const endDateTime = new Date(endDate.split('.').reverse().join('-') + 'T' + endTime);
+
+                if (startDateTime >= endDateTime) {
+                    priceResultDiv.innerHTML = `<div class="alert alert-danger">İade tarihi, alış tarihinden sonra olmalıdır.</div>`;
+                    return;
+                }
+                
+                priceResultDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+                
+                // API'ye D.M.Y formatında gönder (API Controller'ımız bu formatı bekliyor)
+                const apiUrl = `/rentacar/public/api/calculate-price?pickup_date=${startDate}&pickup_time=${startTime}&return_date=${endDate}&return_time=${endTime}&daily_rate=${dailyRate}`;
+
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            priceResultDiv.innerHTML = `<div class="alert alert-info"><strong>${data.days} gün</strong> için toplam tutar: <strong class="fs-5">${data.total_price} TL</strong></div>`;
+                        } else {
+                            priceResultDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                        }
+                    });
+            } else {
+                priceResultDiv.innerHTML = '';
             }
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const startDateInput = document.getElementById('start_date');
-            const endDateInput = document.getElementById('end_date');
-            const priceResultDiv = document.getElementById('price-calculation-result');
-            const dailyRate = document.querySelector('input[name="daily_rate"]').value;
-            function calculatePrice() {
-                const startDate = startDateInput.value;
-                const endDate = endDateInput.value;
-                if (startDate && endDate && startDate < endDate) {
-                    priceResultDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
-                    const apiUrl = `/rentacar/public/api/calculate-price?start_date=${startDate}&end_date=${endDate}&daily_rate=${dailyRate}`;
-                    fetch(apiUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                priceResultDiv.innerHTML = `<div class="alert alert-info"><strong>${data.days} gün</strong> için toplam tutar: <strong class="fs-5">${data.total_price} TL</strong></div>`;
-                            } else {
-                                priceResultDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
-                            }
-                        });
-                } else { priceResultDiv.innerHTML = ''; }
-            }
-            startDateInput.addEventListener('change', calculatePrice);
-            endDateInput.addEventListener('change', calculatePrice);
-        });
-    </script>
+        }
+        
+        // Saat seçimleri değiştiğinde fiyatı yeniden hesapla
+        pickupTimeSelect.addEventListener('change', calculatePrice);
+        returnTimeSelect.addEventListener('change', calculatePrice);
+
+        // Akıllı Takvimi (Litepicker) Başlat
+        if (pickupDateInput && returnDateInput) {
+            
+            // --- DÜZELTME BAŞLANGICI ---
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Bugünü seçilebilir yap
+            // --- DÜZELTME SONU ---
+
+            const picker = new Litepicker({
+                element: pickupDateInput,
+                elementEnd: returnDateInput,
+                singleMode: false,
+                allowRepick: true,
+                format: 'DD.MM.YYYY',
+                minDate: today, // Düzeltilmiş tarihi kullan
+                numberOfMonths: 1, 
+                dropdowns: {
+                    minYear: new Date().getFullYear(),
+                    maxYear: new Date().getFullYear() + 1,
+                    months: true,
+                    years: true,
+                },
+                tooltipText: {"one": "gün", "other": "gün"},
+                lang: 'tr-TR',
+                setup: (picker) => {
+                    // Takvimden bir tarih aralığı seçildiğinde
+                    picker.on('selected', (date1, date2) => {
+                        // --- DÜZELTME BAŞLANGICI ---
+                        // Input'ları manuel olarak güncelle (hatanın çözümü)
+                        pickupDateInput.value = date1.format('DD.MM.YYYY');
+                        returnDateInput.value = date2.format('DD.MM.YYYY');
+                        // Fiyat hesaplama fonksiyonunu BURADA tetikle
+                        calculatePrice();
+                        // --- DÜZELTME SONU ---
+                    });
+                }
+            });
+        }
+    });
+</script>
 <?php endif; ?>
 
 

@@ -38,25 +38,65 @@ class ApiController {
         exit();
     }
 
-    public function calculatePrice() {
-        // Bu metot fiyat hesaplama için, dokunmuyoruz.
-        require_once __DIR__ . '/../BaseController.php';
-        $baseController = new \App\BaseController();
-        $start_date_str = $_GET['start_date']; $end_date_str = $_GET['end_date']; $daily_rate = $_GET['daily_rate'];
-        $response = ['success' => false, 'total_price' => 0, 'days' => 0, 'message' => ''];
-        if (empty($start_date_str) || empty($end_date_str) || empty($daily_rate)) { $response['message'] = 'Eksik parametre.'; echo json_encode($response); exit(); }
+   public function calculatePrice() {
+        // Yeni form alanlarını al
+        $start_date_str = $_GET['pickup_date'];
+        $start_time_str = $_GET['pickup_time'];
+        $end_date_str = $_GET['return_date'];
+        $end_time_str = $_GET['return_time'];
+        $daily_rate = $_GET['daily_rate'];
+
+        $response = [
+            'success' => false,
+            'total_price' => 0,
+            'days' => 0,
+            'message' => ''
+        ];
+
+        if (empty($start_date_str) || empty($end_date_str) || empty($start_time_str) || empty($end_time_str) || empty($daily_rate)) {
+            $response['message'] = 'Tüm tarih ve saat alanları zorunludur.';
+            echo json_encode($response);
+            exit();
+        }
+
         try {
-            $start_date = new \DateTime($start_date_str); $end_date = new \DateTime($end_date_str); $now = new \DateTime();
+            // Tarihleri SQL formatına çevir
+            $start_date_obj = DateTime::createFromFormat('d.m.Y', $start_date_str);
+            $end_date_obj = DateTime::createFromFormat('d.m.Y', $end_date_str);
+
+            if (!$start_date_obj || !$end_date_obj) {
+                throw new \Exception("Geçersiz tarih formatı.");
+            }
+
+            $start_datetime_sql = $start_date_obj->format('Y-m-d') . ' ' . $start_time_str . ':00';
+            $end_datetime_sql = $end_date_obj->format('Y-m-d') . ' ' . $end_time_str . ':00';
+            
+            $start_date = new DateTime($start_datetime_sql);
+            $end_date = new DateTime($end_datetime_sql);
+            $now = new DateTime();
+
             if ($start_date < $now || $start_date >= $end_date) {
                 $response['message'] = 'Geçersiz tarih aralığı.';
             } else {
-                $interval = $start_date->diff($end_date); $days = $interval->days;
-                if ($interval->h > 0 || $interval->i > 0 || $interval->s > 0) { $days++; }
+                $interval = $start_date->diff($end_date);
+                $days = $interval->days;
+                if ($interval->h > 0 || $interval->i > 0 || $interval->s > 0) {
+                    $days++;
+                }
                 $total_price = $days * $daily_rate;
-                $response['success'] = true; $response['total_price'] = number_format($total_price, 2, ',', '.'); $response['days'] = $days; $response['message'] = "$days günlük kiralama için toplam tutar.";
+
+                $response['success'] = true;
+                $response['total_price'] = number_format($total_price, 2, ',', '.');
+                $response['days'] = $days;
+                $response['message'] = "$days günlük kiralama için toplam tutar.";
             }
-        } catch (\Exception $e) { $response['message'] = 'Tarih formatı geçersiz.'; }
-        header('Content-Type: application/json'); echo json_encode($response); exit();
+        } catch (\Exception $e) {
+            $response['message'] = 'Tarih formatı geçersiz: ' . $e->getMessage();
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
     }
 
     /**
